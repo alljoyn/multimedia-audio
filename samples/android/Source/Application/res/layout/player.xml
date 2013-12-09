@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android" android:screenOrientation="portrait"
+	android:id="@+id/mainWindow" android:orientation="vertical" android:layout_width="fill_parent" android:layout_height="fill_parent" android:background="@drawable/bg" android:paddingRight="5dip" android:paddingLeft="5dip">
+	
+    <TextView android:id="@+id/instructions"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="18dp"
+        android:text="Instructions:\nSelect a song below (.wav files shown).\nNext, touch controls to play locally.\nSelect 'Pick Sink' to enable other sinks.\nVolume up/down buttons control sinks.\n'Mute All Sinks' will mute every sink.\n"
+        />
+    
+    <TextView android:id="@+id/songHeader"
+        android:layout_below="@+id/instructions"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="22dp"
+        android:textStyle="bold"
+        android:text="Songs:"
+        />
+        
+    <ListView android:id="@+id/songList"
+		android:layout_width="fill_parent" 
+		android:layout_height="fill_parent"
+		android:layout_weight="1.0" 
+		android:layout_below="@+id/songHeader"
+		android:layout_above="@+id/controls"
+		android:choiceMode="singleChoice"
+		/>
+	
+	<RelativeLayout android:layout_height="wrap_content"
+	    android:background="@drawable/blue_bg" android:id="@+id/controls"
+	    android:layout_width="fill_parent" android:layout_alignParentBottom="true">
+		
+				<RelativeLayout android:layout_height="wrap_content" android:layout_width="wrap_content"
+					android:layout_gravity="center_horizontal" android:layout_marginTop="2px"
+					android:layout_below="@+id/progressContainer" android:layout_centerHorizontal="true">
+					<LinearLayout android:id="@+id/controlButtons" android:orientation="horizontal" android:layout_height="wrap_content"
+					    android:layout_width="wrap_content">
+						<RelativeLayout android:layout_height="90px" android:layout_width="90px" android:layout_margin="10px" android:layout_gravity="center">
+							<Button android:layout_width="fill_parent" android:text="" android:layout_height="fill_parent" android:id="@+id/playButton"
+							    android:background="@drawable/play_button" android:layout_gravity="center"
+							    android:layout_centerInParent="true"></Button>
+						</RelativeLayout>
+						<RelativeLayout android:layout_height="90px" android:layout_width="90px" android:layout_margin="10px" android:layout_gravity="center">
+							<Button android:layout_width="fill_parent" android:text="" android:layout_height="fill_parent" android:id="@+id/pauseButton"
+							    android:background="@drawable/pause_button" android:layout_gravity="center"
+							    android:layout_centerInParent="true"></Button>
+						</RelativeLayout>
+						<RelativeLayout android:layout_height="90px" android:layout_width="90px" android:layout_margin="10px" android:layout_gravity="center">
+							<Button android:layout_width="fill_parent" android:text="" android:layout_height="fill_parent" android:id="@+id/stopButton"
+							    android:background="@drawable/stop_button" android:layout_gravity="center"
+							    android:layout_centerInParent="true"></Button>
+						</RelativeLayout>
+						<RelativeLayout android:layout_height="wrap_content" android:layout_width="wrap_content" android:layout_margin="10px">
+							<Button android:layout_width="match_parent" android:text="Pick Sink" android:layout_height="wrap_content" android:id="@+id/pickSink"
+							    android:layout_gravity="center"
+							    android:layout_alignParentTop="true"></Button>
+							<Button android:layout_width="match_parent" android:text="Mute All Sinks" android:layout_height="wrap_content" android:id="@+id/muteAll"
+							    android:layout_gravity="center"
+							    android:layout_below="@+id/pickSink"></Button>
+						</RelativeLayout>
+					</LinearLayout>
+			</RelativeLayout>
+			
+	</RelativeLayout>
+
+	
+</RelativeLayout>

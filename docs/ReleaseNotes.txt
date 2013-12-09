@@ -1,0 +1,21 @@
+AllJoyn Audio Version 1.0.0 Release Notes
+-----------------------------------
+
+Platform Support
+----------------
+1) Linux Ubuntu (32 and 64 bit x86)
+2) Android Ice Cream Sandwich 4.0 (ARM7)
+3) Android JellyBean 4.1 (ARM7)
+
+Open issues in Version 1.0.0
+---------------------------------
+
+AJAUDIO-40: Glitch occurred at end of audio output (0.5 ms to 10 ms from end).
+
+AJAUDIO-41: Loss of synchronization can occur when resuming after dropout.
+
+Change history
+--------------
+
+1.0.0 - Initial Open Source Release
+

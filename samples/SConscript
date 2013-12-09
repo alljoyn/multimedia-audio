@@ -1,0 +1,63 @@
+# Copyright (c) 2013, AllSeen Alliance. All rights reserved.
+#
+#    Permission to use, copy, modify, and/or distribute this software for any
+#    purpose with or without fee is hereby granted, provided that the above
+#    copyright notice and this permission notice appear in all copies.
+#
+#    THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+#    WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+#    MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+#    ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+#    WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+#    ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+#    OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+
+import os
+
+Import('audio_env')
+
+samples_env = audio_env.Clone()
+
+samples_env.Prepend(LIBS = ['alljoyn_audio', 'alljoyn_about'])
+
+if samples_env['BD'] == 'on':
+    # Build apps with bundled daemon support
+    samples_env.Prepend(LIBS = [samples_env['bdobj'], samples_env['bdlib']])
+
+# AllJoyn Audio Java
+if samples_env['OS_CONF'] == 'android':
+    from configurejni import ConfigureJNI
+    if not ConfigureJNI(samples_env):
+        if not GetOption('help'):
+            Exit()
+
+    classpath = os.environ.get('CLASSPATH')
+    if not classpath:
+        print "CLASSPATH not set"
+        if not GetOption('help'):
+            Exit()
+
+    # Set JAVACLASSPATH to contents of CLASSPATH env variable
+    samples_env.AppendENVPath("JAVACLASSPATH", classpath)
+    samples_env['JAVACLASSPATH'] = samples_env['ENV']['JAVACLASSPATH']
+
+    # Tell dependent dirs where class and jar files are located
+    samples_env.Append(CLASSDIR = '$OBJDIR/classes')
+    samples_env.Append(JARDIR = '$AUDIO_DISTDIR/jar')
+
+    # Sample programs
+    samples_env.Install('$AUDIO_DISTDIR/samples/Source', samples_env.Dir('android/Source/Application').srcnode());
+    samples_env.Install('$AUDIO_DISTDIR/samples/Source', samples_env.Dir('android/Source/Library').srcnode());
+    samples_env.Install('$AUDIO_DISTDIR/samples', samples_env.Dir('android/Sink').srcnode());
+    samples_env.SConscript('android/SConscript', exports = ['samples_env']);
+
+    # AllJoyn Audio Java binding docs
+    samples_env['PROJECT_SHORT_NAME'] = 'AllJoyn Audio Java API<br/>Reference Manual'
+    samples_env['PROJECT_LONG_NAME'] = 'AllJoyn Audio Java API Reference Manual'
+    samples_env['PROJECT_NUMBER'] = 'Version 0.0.1'
+    samples_env['PROJECT_COPYRIGHT'] = "Copyright &copy; 2013 AllSeen Alliance.<br/><b>THIS DOCUMENT AND ALL INFORMATION CONTAIN HEREIN ARE PROVIDED ON AN \"AS-IS\" BASIS WITHOUT WARRANTY OF ANY KIND</b>.<br/><b>MAY CONTAIN U.S. AND INTERNATIONAL EXPORT CONTROLLED INFORMATION</b>"
+    samples_env.JavaDoc('$AUDIO_JAVA_DISTDIR/docs/html', 'android/Source/Library/src', JAVACLASSPATH = samples_env.subst('$JAVACLASSPATH'))
+
+else:
+    samples_env.SConscript('$OS_GROUP/SConscript', exports = ['samples_env'])
+

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="250dp">
+	<RelativeLayout 
+	    android:orientation="vertical"
+	    android:layout_width="match_parent"
+	    android:layout_height="250dp">
+	  
+	    <TextView
+	     	android:id="@+id/selectText"
+	        android:text="Select a Sink to Stream Audio to:"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:layout_alignParentTop="true"
+	        android:layout_centerHorizontal="true"
+	        />
+	    <Button
+	        android:id="@+id/refreshButton"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:layout_centerHorizontal="true"
+	        android:layout_below="@+id/selectText"
+	        android:text="Refresh list"
+	        />
+	    <ListView 
+	        android:id="@+id/speakerList"           
+	        android:layout_width="wrap_content"
+	        android:orientation="vertical"
+	        android:layout_height="wrap_content"
+	        android:layout_marginTop="5dp"
+	        android:layout_marginBottom="5dp"
+	        android:layout_marginLeft="5dp"
+	        android:layout_marginRight="5dp"
+	        android:layout_below="@+id/refreshButton"
+	        android:layout_above="@+id/closePopup"
+	        android:divider="#ff505050"
+	        android:dividerHeight="1dp"
+	        android:transcriptMode="alwaysScroll"
+	    />
+	    <Button
+	        android:id="@+id/closePopup"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:layout_alignParentBottom="true"
+	        android:layout_centerHorizontal="true"
+	        android:text="Done"
+	        />
+	        
+	</RelativeLayout>
+</LinearLayout>

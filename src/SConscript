@@ -1,0 +1,54 @@
+# Copyright (c) 2013, AllSeen Alliance. All rights reserved.
+#
+#    Permission to use, copy, modify, and/or distribute this software for any
+#    purpose with or without fee is hereby granted, provided that the above
+#    copyright notice and this permission notice appear in all copies.
+#
+#    THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+#    WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+#    MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+#    ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+#    WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+#    ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+#    OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+
+Import('audio_env')
+
+# Sources
+srcs = [ f for f in audio_env.Glob('*.cc') if not (str(f).endswith('version.cc')) ]
+
+# ALAC
+if audio_env.has_key('ALAC_BASE'):
+    audio_env.Append(CPPDEFINES = ['WITH_ALAC'])
+    srcs += audio_env.Glob('alac/*.cc')
+    audio_env.Append(CPPFLAGS = ['-Wno-multichar'])
+    audio_env.Append(CPPPATH = ['$ALAC_BASE/codec'])
+    audio_env.Append(LIBPATH = ['$ALAC_BASE/codec']);
+    audio_env.Append(LIBS = ['alac'])
+
+
+# Platform specific sources
+if audio_env['OS'] == 'android':
+    srcs += [ f for f in audio_env.Glob('$OS/*.cc') ]
+else:
+    srcs += [ f for f in audio_env.Glob('$OS_GROUP/*.cc') ]
+
+
+version_cc = audio_env.GenVersion('version')
+
+libs = []
+
+# Static library
+objs = audio_env.Object(srcs)
+audio_env.Depends(version_cc, objs)
+objs.append(audio_env.Object(version_cc))
+libs.append(audio_env.StaticLibrary('alljoyn_audio', objs))
+
+# Shared library
+if audio_env.get('LIBTYPE', 'static') != 'static':
+    shobjs = audio_env.SharedObject(srcs)
+    audio_env.Depends(version_cc, shobjs)
+    shobjs.append(audio_env.SharedObject(version_cc))
+    libs.append(audio_env.SharedLibrary('alljoyn_audio', shobjs))
+
+Return('libs')

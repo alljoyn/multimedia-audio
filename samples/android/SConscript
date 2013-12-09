@@ -1,0 +1,47 @@
+# Copyright (c) 2013, AllSeen Alliance. All rights reserved.
+#
+#    Permission to use, copy, modify, and/or distribute this software for any
+#    purpose with or without fee is hereby granted, provided that the above
+#    copyright notice and this permission notice appear in all copies.
+#
+#    THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+#    WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+#    MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+#    ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+#    WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+#    ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+#    OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+
+Import('samples_env')
+
+# Set the ABI based on the CPU
+if samples_env['CPU'] == 'arm':
+    android_eabi = 'armeabi'
+else:
+    android_eabi = 'x86'
+
+samples_env.Append(LIBS = ['OpenSLES'])
+
+
+# Sink sample
+sink_srcs = samples_env.Glob('Sink/jni/*.cc')
+sink_objs = samples_env.SharedObject(sink_srcs)
+libAllJoynAudioSink = samples_env.SharedLibrary('AllJoynAudioSink', sink_objs)
+
+samples_env.Install('$AUDIO_DISTDIR/samples/Sink/libs/%s' % android_eabi, libAllJoynAudioSink)
+
+# Source library
+source_srcs = samples_env.Glob('Source/Library/jni/*.cc')
+source_objs = samples_env.SharedObject(source_srcs)
+libeasy_alljoyn_audio_service = samples_env.SharedLibrary('easy_alljoyn_audio_service', source_objs)
+samples_env.Install('$AUDIO_DISTDIR/lib', libeasy_alljoyn_audio_service)
+
+alljoynaudioservicelibrary_classes = samples_env.Java('$CLASSDIR', source = ['Source/Library/src'])
+samples_env.Jar('$AUDIO_DISTDIR/jar/alljoynaudioservicelibrary.jar', source = [alljoynaudioservicelibrary_classes])
+
+# Source sample
+samples_env.Install('$AUDIO_DISTDIR/samples/Source/Library/bin', '$AUDIO_DISTDIR/jar/alljoynaudioservicelibrary.jar')
+samples_env.Install('$AUDIO_DISTDIR/samples/Source/Library/libs/%s' % android_eabi, '$AUDIO_DISTDIR/lib/libeasy_alljoyn_audio_service.so')
+
+#samples_env.Install('$AUDIO_JAVA_DISTDIR/samples', 'README.txt')
+
