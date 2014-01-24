@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright (c) 2013, doubleTwist Corporation and AllSeen Alliance. All rights reserved.
+ * Copyright (c) 2013-2014, doubleTwist Corporation and AllSeen Alliance. All rights reserved.
  *
  *    Permission to use, copy, modify, and/or distribute this software for any
  *    purpose with or without fee is hereby granted, provided that the above
@@ -72,8 +72,9 @@ AudioSinkObject::AudioSinkObject(BusAttachment* bus, const char* path, StreamObj
         { volumeIntf->GetMember("AdjustVolume"), static_cast<MessageReceiver::MethodHandler>(&AudioSinkObject::AdjustVolume) },
     };
     QStatus status = AddMethodHandlers(methodEntries, sizeof(methodEntries) / sizeof(methodEntries[0]));
-    if (status != ER_OK)
+    if (status != ER_OK) {
         QCC_LogError(status, ("Failed to register method handlers for AudioSinkObject"));
+    }
 
     const InterfaceDescription* audioSourceIntf = bus->GetInterface(AUDIO_SOURCE_INTERFACE);
     assert(audioSourceIntf);
@@ -82,8 +83,9 @@ AudioSinkObject::AudioSinkObject(BusAttachment* bus, const char* path, StreamObj
     status = bus->RegisterSignalHandler(this,
                                         static_cast<MessageReceiver::SignalHandler>(&AudioSinkObject::AudioDataSignalHandler),
                                         audioDataMember, NULL);
-    if (status != ER_OK)
+    if (status != ER_OK) {
         QCC_LogError(status, ("Failed to register audio signal handler"));
+    }
 
     mPlayStateChangedMember = audioSinkIntf->GetMember("PlayStateChanged");
     assert(mPlayStateChangedMember);
@@ -160,24 +162,27 @@ QStatus AudioSinkObject::Get(const char* ifcName, const char* propName, MsgArg& 
         } else if (0 == strcmp(propName, "Volume")) {
             int16_t volume;
             bool success = mAudioDevice->GetVolume(volume);
-            if (success)
+            if (success) {
                 val.Set("n", volume);
-            else
+            } else {
                 status = ER_FAIL;
+            }
         } else if (0 == strcmp(propName, "VolumeRange")) {
             int16_t low, high, step;
             bool success = mAudioDevice->GetVolumeRange(low, high, step);
-            if (success)
+            if (success) {
                 val.Set("(nnn)", low, high, step);
-            else
+            } else {
                 status = ER_FAIL;
+            }
         } else if (0 == strcmp(propName, "Mute")) {
             bool mute;
             bool success = mAudioDevice->GetMute(mute);
-            if (success)
+            if (success) {
                 val.Set("b", mute);
-            else
+            } else {
                 status = ER_FAIL;
+            }
         } else {
             status = ER_BUS_NO_SUCH_PROPERTY;
         }
@@ -185,8 +190,9 @@ QStatus AudioSinkObject::Get(const char* ifcName, const char* propName, MsgArg& 
         status = ER_BUS_NO_SUCH_INTERFACE;
     }
 
-    if (status == ER_BUS_NO_SUCH_INTERFACE || status == ER_BUS_NO_SUCH_PROPERTY)
+    if (status == ER_BUS_NO_SUCH_INTERFACE || status == ER_BUS_NO_SUCH_PROPERTY) {
         return PortObject::Get(ifcName, propName, val);
+    }
 
     return status;
 }
@@ -211,8 +217,9 @@ void AudioSinkObject::SetProp(const InterfaceDescription::Member* member, Messag
                     MethodReply(msg, "org.alljoyn.Error.OutOfRange");
                     return;
                 }
-                if (!mAudioDevice->SetVolume(newVolume))
+                if (!mAudioDevice->SetVolume(newVolume)) {
                     status = ER_FAIL;
+                }
             }
         } else if (0 == strcmp(propName, "VolumeRange")) {
             status = ER_BUS_PROPERTY_ACCESS_DENIED;
@@ -220,8 +227,9 @@ void AudioSinkObject::SetProp(const InterfaceDescription::Member* member, Messag
             bool newMute = false;
             status = val->Get("b", &newMute);
             if (status == ER_OK) {
-                if (!mAudioDevice->SetMute(newMute))
+                if (!mAudioDevice->SetMute(newMute)) {
                     status = ER_FAIL;
+                }
             }
         } else {
             status = ER_BUS_NO_SUCH_PROPERTY;
@@ -352,8 +360,9 @@ void AudioSinkObject::Flush(const InterfaceDescription::Member* member, Message&
     GET_ARGS(1);
 
     const uint64_t flushTime = args[0].v_uint64;
-    if (flushTime != 0)
+    if (flushTime != 0) {
         mStream->SleepUntilTimeNanos(flushTime);
+    }
 
     mBufferMutex.Lock();
     uint32_t size = GetCombinedBufferSize();
@@ -365,8 +374,9 @@ void AudioSinkObject::Flush(const InterfaceDescription::Member* member, Message&
 
     MsgArg outArg("u", size);
     QStatus status = MethodReply(msg, &outArg, 1);
-    if (status != ER_OK)
+    if (status != ER_OK) {
         QCC_LogError(status, ("Flush reply failed"));
+    }
 }
 
 void AudioSinkObject::AdjustVolume(const InterfaceDescription::Member* member, Message& msg) {
@@ -407,8 +417,9 @@ QStatus AudioSinkObject::EmitPlayStateChangedSignal(uint8_t oldState, uint8_t ne
 
     uint8_t flags = 0;
     QStatus status = Signal(NULL, mStream->GetSessionId(), *mPlayStateChangedMember, args, 2, 0, flags);
-    if (status != ER_OK)
+    if (status != ER_OK) {
         QCC_LogError(status, ("Failed to emit PlayStateChanged signal"));
+    }
 
     return status;
 }
@@ -418,8 +429,9 @@ QStatus AudioSinkObject::EmitVolumeChangedSignal(int16_t volume) {
 
     uint8_t flags = 0;
     QStatus status = Signal(NULL, mStream->GetSessionId(), *mVolumeChangedMember, &arg, 1, 0, flags);
-    if (status != ER_OK)
+    if (status != ER_OK) {
         QCC_LogError(status, ("Failed to emit VolumeChanged signal"));
+    }
 
     return status;
 }
@@ -429,8 +441,9 @@ QStatus AudioSinkObject::EmitMuteChangedSignal(bool mute) {
 
     uint8_t flags = 0;
     QStatus status = Signal(NULL, mStream->GetSessionId(), *mMuteChangedMember, &arg, 1, 0, flags);
-    if (status != ER_OK)
+    if (status != ER_OK) {
         QCC_LogError(status, ("Failed to emit MuteChanged signal"));
+    }
 
     return status;
 }
@@ -438,8 +451,9 @@ QStatus AudioSinkObject::EmitMuteChangedSignal(bool mute) {
 QStatus AudioSinkObject::EmitFifoPositionChangedSignal() {
     uint8_t flags = 0;
     QStatus status = Signal(NULL, mStream->GetSessionId(), *mFifoPositionChangedMember, NULL, 0, 0, flags);
-    if (status != ER_OK)
+    if (status != ER_OK) {
         QCC_LogError(status, ("Failed to emit FifoPositionChanged signal"));
+    }
 
     return status;
 }
@@ -489,8 +503,9 @@ void AudioSinkObject::AudioDataSignalHandler(const InterfaceDescription::Member*
 
     mDecodeBufferMutex.Lock();
     mDecodeBuffers.push_back(ts);
-    if (!mDecodeEvent.IsSet())
+    if (!mDecodeEvent.IsSet()) {
         mDecodeEvent.SetEvent();
+    }
     mDecodeBufferMutex.Unlock();
 }
 
@@ -528,8 +543,9 @@ ThreadReturn AudioSinkObject::AudioOutputThread(void* arg) {
     }
 
     // Has thread been instructed to stop?
-    if (find(signaledEvents.begin(), signaledEvents.end(), &stopEvent) != signaledEvents.end())
+    if (find(signaledEvents.begin(), signaledEvents.end(), &stopEvent) != signaledEvents.end()) {
         return NULL;
+    }
 
     size_t bufferSize = apo->mAudioDeviceBufferSize * 4;
     uint8_t* buffer = (uint8_t*)calloc(bufferSize, 1);
@@ -608,8 +624,9 @@ ThreadReturn AudioSinkObject::AudioOutputThread(void* arg) {
             }
         }
 
-        if (status != ER_OK)
+        if (status != ER_OK) {
             break;
+        }
 
         TimedSamples ts = apo->mBuffers.front();
         if (ts.resync) {
@@ -662,8 +679,9 @@ ThreadReturn AudioSinkObject::AudioOutputThread(void* arg) {
                          (apo->mStream->GetCurrentTimeNanos() + delay) - ts.timestamp));
 #endif
 
-        if (ts.dataSize < sizeToRead)
+        if (ts.dataSize < sizeToRead) {
             sizeToRead = ts.dataSize;
+        }
 
         size_t sizeRead = 0;
         if (ts.dataSize == sizeToRead) {
@@ -682,8 +700,9 @@ ThreadReturn AudioSinkObject::AudioOutputThread(void* arg) {
         apo->mBufferMutex.Unlock();
 
         size_t newSize = size - sizeRead;
-        if (newSize <= apo->mFifoLowThreshold)
+        if (newSize <= apo->mFifoLowThreshold) {
             apo->EmitFifoPositionChangedSignal();
+        }
 
         apo->SetPlayState(PlayState::PLAYING);
 
@@ -730,8 +749,9 @@ ThreadReturn AudioSinkObject::DecodeThread(void* arg) {
     }
 
     // Has thread been instructed to stop?
-    if (find(signaledEvents.begin(), signaledEvents.end(), &stopEvent) != signaledEvents.end())
+    if (find(signaledEvents.begin(), signaledEvents.end(), &stopEvent) != signaledEvents.end()) {
         return NULL;
+    }
 
     while (!selfThread->IsStopping()) {
         apo->mDecodeBufferMutex.Lock();
@@ -768,8 +788,9 @@ ThreadReturn AudioSinkObject::DecodeThread(void* arg) {
             ts.data = NULL;
         } else {
             apo->mBuffers.push_back(ts);
-            if (!apo->mAudioOutputEvent->IsSet())
+            if (!apo->mAudioOutputEvent->IsSet()) {
                 apo->mAudioOutputEvent->SetEvent();
+            }
         }
         apo->mBufferMutex.Unlock();
     }
@@ -780,8 +801,9 @@ ThreadReturn AudioSinkObject::DecodeThread(void* arg) {
 void AudioSinkObject::SetPlayState(uint8_t newState) {
     uint8_t oldState = mPlayState;
     mPlayState = newState;
-    if (oldState != newState)
+    if (oldState != newState) {
         EmitPlayStateChangedSignal(oldState, newState);
+    }
 }
 
 size_t AudioSinkObject::GetCombinedBufferSize() {

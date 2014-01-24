@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright (c) 2013, doubleTwist Corporation and AllSeen Alliance. All rights reserved.
+ * Copyright (c) 2013-2014, doubleTwist Corporation and AllSeen Alliance. All rights reserved.
  *
  *    Permission to use, copy, modify, and/or distribute this software for any
  *    purpose with or without fee is hereby granted, provided that the above
@@ -75,11 +75,13 @@ class VolumeControlTest : public testing::Test {
 
     virtual void TearDown() {
 
-        if (mServiceName)
+        if (mServiceName) {
             mMsgBus->ReleaseName(mServiceName);
+        }
 
-        if (mMsgBus->IsConnected())
+        if (mMsgBus->IsConnected()) {
             mMsgBus->Disconnect(connectArgs);
+        }
 
         delete mMsgBus;
         mMsgBus = NULL;
@@ -93,8 +95,9 @@ class VolumeControlTest : public testing::Test {
         QStatus status = ER_OK;
 
         connectArgs = getenv("BUS_ADDRESS");
-        if (connectArgs == NULL)
+        if (connectArgs == NULL) {
             connectArgs = "unix:abstract=alljoyn";
+        }
 
         mMsgBus = new BusAttachment("VolumeControlTest", true);
         status = mMsgBus->CreateInterfacesFromXml(INTERFACES_XML);
@@ -216,8 +219,9 @@ class VolumeControlTest : public testing::Test {
 
     ProxyBusObject* GetRawPort(ProxyBusObject* stream) {
         ProxyBusObject* port = GetPort(stream);
-        if (port == NULL)
+        if (port == NULL) {
             return NULL;
+        }
 
         Capability capability;
         SetRawCapability(capability, 2, 44100);
@@ -251,8 +255,9 @@ class VolumeControlTest : public testing::Test {
         signalHandler->RegisterHandlers();
         mMsgBus->RegisterBusObject(*signalHandler);
         while (mInterrupt == false) {
-            if (signalHandler->WaitUntilReadyToEmit(100) == ER_OK)
+            if (signalHandler->WaitUntilReadyToEmit(100) == ER_OK) {
                 break;
+            }
         }
     }
 
@@ -260,7 +265,7 @@ class VolumeControlTest : public testing::Test {
 
         MsgArg reply;
         QStatus status = port->GetProperty(VOLUME_INTERFACE, "Mute", reply);
-        if (status != ER_OK) return status;
+        if (status != ER_OK) { return status; }
         return reply.Get("b", &mute);
     }
 
@@ -286,7 +291,7 @@ class VolumeControlTest : public testing::Test {
         int16_t step;
         MsgArg reply;
         QStatus status = port->GetProperty(VOLUME_INTERFACE, "VolumeRange", reply);
-        if (status != ER_OK) return status;
+        if (status != ER_OK) { return status; }
         return reply.Get("(nnn)", &low, &high, &step);
     }
 
@@ -294,7 +299,7 @@ class VolumeControlTest : public testing::Test {
 
         MsgArg reply;
         QStatus status = port->GetProperty(VOLUME_INTERFACE, "Volume", reply);
-        if (status != ER_OK) return status;
+        if (status != ER_OK) { return status; }
         return reply.Get("n", &volume);
     }
 

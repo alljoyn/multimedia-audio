@@ -4,7 +4,7 @@
  */
 
 /******************************************************************************
- * Copyright (c) 2013, doubleTwist Corporation and AllSeen Alliance. All rights reserved.
+ * Copyright (c) 2013-2014, doubleTwist Corporation and AllSeen Alliance. All rights reserved.
  *
  *    Permission to use, copy, modify, and/or distribute this software for any
  *    purpose with or without fee is hereby granted, provided that the above
@@ -119,8 +119,8 @@ struct PlayState {
     if (numArgs != numExpected) { \
         QCC_LogError(ER_FAIL, ("%s invalid number of arguments: %zu", member->name.c_str(), numArgs)); \
         QStatus status = MethodReply(msg, ER_FAIL); \
-        if (status != ER_OK) \
-            QCC_LogError(status, ("%s reply failed", member->name.c_str())); \
+        if (status != ER_OK) { \
+            QCC_LogError(status, ("%s reply failed", member->name.c_str())); } \
         return; \
     }
 
@@ -129,8 +129,8 @@ struct PlayState {
  */
 #define REPLY(error) { \
         QStatus replyStatus = MethodReply(msg, error); \
-        if (replyStatus != ER_OK) \
-            QCC_LogError(replyStatus, ("%s reply failed", member->name.c_str())); \
+        if (replyStatus != ER_OK) { \
+            QCC_LogError(replyStatus, ("%s reply failed", member->name.c_str())); } \
 }
 
 /**
@@ -138,8 +138,8 @@ struct PlayState {
  */
 #define REPLY_OK() { \
         QStatus replyStatus = MethodReply(msg); \
-        if (replyStatus != ER_OK) \
-            QCC_LogError(replyStatus, ("%s reply failed", member->name.c_str())); \
+        if (replyStatus != ER_OK) { \
+            QCC_LogError(replyStatus, ("%s reply failed", member->name.c_str())); } \
 }
 
 /** The Announce interface name. */

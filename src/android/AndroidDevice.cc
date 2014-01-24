@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright (c) 2013, AllSeen Alliance. All rights reserved.
+ * Copyright (c) 2013-2014, AllSeen Alliance. All rights reserved.
  *
  *    Permission to use, copy, modify, and/or distribute this software for any
  *    purpose with or without fee is hereby granted, provided that the above
@@ -153,8 +153,9 @@ bool AndroidDevice::Open(const char*format, uint32_t sampleRate, uint32_t numCha
     mNumberOfFrames = (16 >> 3) * numChannels;
     bufferSize = BYTES_PER_FRAME * mNumberOfFrames;
     for (int i = 0; i < NUM_BUFFERS; i++) {
-        if (mAudioBuffers[i] == NULL)
+        if (mAudioBuffers[i] == NULL) {
             mAudioBuffers[i] = (uint8_t*)malloc(bufferSize * sizeof(uint8_t));
+        }
     }
     mBuffersAvailable = 2;
     mBufferIndex = 0;
@@ -238,8 +239,9 @@ AndroidDevice::~AndroidDevice()
 
 bool AndroidDevice::Pause()
 {
-    if (!mPlay)
+    if (!mPlay) {
         return false;
+    }
 
     // set the player's state to playing
     SLresult result = (*mPlay)->SetPlayState(mPlay, SL_PLAYSTATE_PAUSED);
@@ -251,8 +253,9 @@ bool AndroidDevice::Pause()
 
 bool AndroidDevice::Play()
 {
-    if (!mPlay)
+    if (!mPlay) {
         return false;
+    }
 
     // set the player's state to playing
     SLresult result = (*mPlay)->SetPlayState(mPlay, SL_PLAYSTATE_PLAYING);
@@ -279,8 +282,9 @@ uint32_t AndroidDevice::GetFramesWanted()
 
 bool AndroidDevice::Write(const uint8_t*buffer, uint32_t bufferSizeInFrames)
 {
-    if (!mBufferQueue)
+    if (!mBufferQueue) {
         return false;
+    }
 
     while (mBuffersAvailable == 0) {
         //block and wait for a buffer to free up
@@ -304,8 +308,9 @@ bool AndroidDevice::Write(const uint8_t*buffer, uint32_t bufferSizeInFrames)
 
 bool AndroidDevice::GetMute(bool& mute)
 {
-    if (!mVolume)
+    if (!mVolume) {
         return false;
+    }
 
     SLboolean value;
     SLresult result = (*mVolume)->GetMute(mVolume, &value);
@@ -316,8 +321,9 @@ bool AndroidDevice::GetMute(bool& mute)
 
 bool AndroidDevice::SetMute(bool mute)
 {
-    if (!mVolume)
+    if (!mVolume) {
         return false;
+    }
 
     SLresult result = (*mVolume)->SetMute(mVolume, mute ? SL_BOOLEAN_TRUE : SL_BOOLEAN_FALSE);
     if (result == SL_RESULT_SUCCESS) {
@@ -336,8 +342,9 @@ bool AndroidDevice::SetMute(bool mute)
 
 bool AndroidDevice::GetVolumeRange(int16_t& low, int16_t& high, int16_t& step)
 {
-    if (!mVolume)
+    if (!mVolume) {
         return false;
+    }
 
     SLresult result;
     bool ret = false;
@@ -354,8 +361,9 @@ bool AndroidDevice::GetVolumeRange(int16_t& low, int16_t& high, int16_t& step)
 
 bool AndroidDevice::GetVolume(int16_t& volume)
 {
-    if (!mVolume)
+    if (!mVolume) {
         return false;
+    }
 
     SLmillibel mCurrentVolume;
     SLresult result = (*mVolume)->GetVolumeLevel(mVolume, &mCurrentVolume);
@@ -368,8 +376,9 @@ bool AndroidDevice::GetVolume(int16_t& volume)
 
 bool AndroidDevice::SetVolume(int16_t newVolume)
 {
-    if (!mVolume)
+    if (!mVolume) {
         return false;
+    }
 
     SLresult result;
     SLmillibel mB = newVolume;
@@ -403,8 +412,9 @@ void AndroidDevice::RemoveListener(AudioDeviceListener* listener)
 {
     mListenersMutex->Lock();
     Listeners::iterator it = mListeners.find(listener);
-    if (it != mListeners.end())
+    if (it != mListeners.end()) {
         mListeners.erase(it);
+    }
     mListenersMutex->Unlock();
 }
 

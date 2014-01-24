@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright (c) 2013, doubleTwist Corporation and AllSeen Alliance. All rights reserved.
+ * Copyright (c) 2013-2014, doubleTwist Corporation and AllSeen Alliance. All rights reserved.
  *
  *    Permission to use, copy, modify, and/or distribute this software for any
  *    purpose with or without fee is hereby granted, provided that the above
@@ -76,8 +76,9 @@ class TestFixture {
 
     ~TestFixture() {
 
-        if (mServiceName)
+        if (mServiceName) {
             mMsgBus->ReleaseName(mServiceName);
+        }
 
         if (mMsgBus != NULL) {
             BusAttachment* deleteMe = mMsgBus;
@@ -103,8 +104,9 @@ class TestFixture {
         QStatus status = ER_OK;
 
         connectArgs = getenv("BUS_ADDRESS");
-        if (connectArgs == NULL)
+        if (connectArgs == NULL) {
             connectArgs = "unix:abstract=alljoyn";
+        }
 
         mMsgBus = new BusAttachment("StreamTest", true);
         status = mMsgBus->CreateInterfacesFromXml(INTERFACES_XML);
@@ -263,8 +265,9 @@ class TestFixture {
             }
             uint64_t newTime = GetCurrentTimeNanos();
             diffTime = (newTime - time) / 2;
-            if (diffTime < 10000000)
+            if (diffTime < 10000000) {
                 break;
+            }
             SleepNanos(1000000000);
         }
         MsgArg adjustTimeArgs[1];
@@ -279,8 +282,9 @@ class TestFixture {
         signalHandler->RegisterHandlers();
         mMsgBus->RegisterBusObject(*signalHandler);
         while (mInterrupt == false) {
-            if (signalHandler->WaitUntilReadyToEmit(100) == ER_OK)
+            if (signalHandler->WaitUntilReadyToEmit(100) == ER_OK) {
                 break;
+            }
         }
     }
 
@@ -294,10 +298,11 @@ class TestFixture {
 
         while (bytesEmitted < totalLength) {
             uint32_t remainingBytes = bufferSize;
-            if (bytesEmitted + remainingBytes > totalLength)
+            if (bytesEmitted + remainingBytes > totalLength) {
                 remainingBytes = totalLength - bytesEmitted;
+            }
             QStatus status = signalHandler->EmitAudioDataSignal(buffer, remainingBytes, timestamp);
-            if (status != ER_OK) return status;
+            if (status != ER_OK) { return status; }
             bytesEmitted += remainingBytes;
             timestamp += (uint64_t)((remainingBytes / bytesPerSecond) * SECOND_NANOS);
         }
@@ -329,8 +334,9 @@ class TestFixture {
         printf("\t     Waiting for PlayStateChanged event...\n");
         uint32_t interval = 500;
         for (uint32_t i = 0; i < (timeoutMs / interval) && mInterrupt == false; i++) {
-            if (signalHandler->WaitForPlayStateChanged(interval) == ER_OK)
+            if (signalHandler->WaitForPlayStateChanged(interval) == ER_OK) {
                 return ER_OK;
+            }
         }
         return ER_TIMEOUT;
     }
@@ -349,8 +355,9 @@ class TestFixture {
         printf("\t     Waiting for FifoPositionChanged event...\n");
         uint32_t interval = 500;
         for (uint32_t i = 0; mInterrupt == false && i < (timeoutMs / interval); i++) {
-            if (signalHandler->WaitForFifoPositionChanged(interval) == ER_OK)
+            if (signalHandler->WaitForFifoPositionChanged(interval) == ER_OK) {
                 return ER_OK;
+            }
         }
         return ER_TIMEOUT;
     }
@@ -360,7 +367,7 @@ class TestFixture {
         size = 0;
         MsgArg reply;
         QStatus status = port->GetProperty(AUDIO_SINK_INTERFACE, "FifoSize", reply);
-        if (status != ER_OK) return status;
+        if (status != ER_OK) { return status; }
         return reply.Get("u", &size);
     }
 
@@ -369,8 +376,9 @@ class TestFixture {
         printf("\t     Waiting for OwnershipLost event...\n");
         uint32_t interval = 500;
         for (uint32_t i = 0; mInterrupt == false && i < (timeoutMs / interval); i++) {
-            if (signalHandler->WaitForOwnershipLost(interval) == ER_OK)
+            if (signalHandler->WaitForOwnershipLost(interval) == ER_OK) {
                 return ER_OK;
+            }
         }
         return ER_TIMEOUT;
     }
@@ -513,7 +521,9 @@ TEST_F(StreamTest, ConfigurePortWithSupportedRawCapability) {
     status = port->GetProperty(PORT_INTERFACE, "Capabilities", capabilitiesReply);
     EXPECT_EQ(status, ER_OK);
 
-    if (status != ER_OK) return;
+    if (status != ER_OK) {
+        return;
+    }
 
     size_t count;
     Capability* capabilities;

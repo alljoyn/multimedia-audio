@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright (c) 2013, AllSeen Alliance. All rights reserved.
+ * Copyright (c) 2013-2014, AllSeen Alliance. All rights reserved.
  *
  *    Permission to use, copy, modify, and/or distribute this software for any
  *    purpose with or without fee is hereby granted, provided that the above
@@ -31,8 +31,9 @@ class AboutStore : public ajn::services::PropertyStore {
         mFriendlyName = strdup(friendlyName);
     }
     ~AboutStore() {
-        if (mFriendlyName != NULL)
+        if (mFriendlyName != NULL) {
             free((void*)mFriendlyName);
+        }
     }
     QStatus ReadAll(const char* languageTag, PropertyStore::Filter filter, MsgArg& all) {
         if (languageTag && strcmp(languageTag, "en") != 0) {

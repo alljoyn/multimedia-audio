@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright (c) 2013, doubleTwist Corporation and AllSeen Alliance. All rights reserved.
+ * Copyright (c) 2013-2014, doubleTwist Corporation and AllSeen Alliance. All rights reserved.
  *
  *    Permission to use, copy, modify, and/or distribute this software for any
  *    purpose with or without fee is hereby granted, provided that the above
@@ -89,8 +89,9 @@ class SignallingObject : public BusObject {
             status = ER_BUS_NO_SUCH_INTERFACE;
         }
 
-        if (status == ER_BUS_NO_SUCH_INTERFACE || status == ER_BUS_NO_SUCH_PROPERTY)
+        if (status == ER_BUS_NO_SUCH_INTERFACE || status == ER_BUS_NO_SUCH_PROPERTY) {
             return BusObject::Get(ifcName, propName, val);
+        }
 
         return status;
     }
@@ -112,8 +113,9 @@ class SignallingObject : public BusObject {
 
         uint8_t flags = 0;
         QStatus status = Signal(NULL, sessionId, *mAudioDataMember, args, 2, 0, flags);
-        if (status != ER_OK)
+        if (status != ER_OK) {
             QCC_LogError(status, ("Failed to emit Data signal"));
+        }
 
         return status;
     }
@@ -139,8 +141,9 @@ class FifoPositionHandler : public MessageReceiver {
         QStatus status = bus->RegisterSignalHandler(this,
                                                     static_cast<MessageReceiver::SignalHandler>(&FifoPositionHandler::FifoPositionChangedSignalHandler),
                                                     fifoPositionChangedMember, objectPath);
-        if (status != ER_OK)
+        if (status != ER_OK) {
             return status;
+        }
 
         mReadyToEmitEvent->SetEvent();
         mSessionId = sessionId;
@@ -150,14 +153,16 @@ class FifoPositionHandler : public MessageReceiver {
 
     void Unregister(BusAttachment* bus) {
         QStatus status = bus->UnregisterAllHandlers(this);
-        if (status != ER_OK)
+        if (status != ER_OK) {
             QCC_LogError(status, ("UnregisterAllHandlers failed"));
+        }
     }
 
     QStatus WaitUntilReadyToEmit(uint32_t maxMs) {
         QStatus status = Event::Wait(*mReadyToEmitEvent, maxMs);
-        if (status == ER_OK)
+        if (status == ER_OK) {
             mReadyToEmitEvent->ResetEvent();
+        }
         return status;
     }
 
@@ -225,15 +230,17 @@ SinkPlayer::SinkPlayer(BusAttachment* msgBus)
         status = mMsgBus->RegisterSignalHandler(this,
                                                 static_cast<MessageReceiver::SignalHandler>(&SinkPlayer::MuteChangedSignalHandler),
                                                 muteChangedMember, NULL);
-        if (status != ER_OK)
+        if (status != ER_OK) {
             QCC_LogError(status, ("Failed to register MuteChanged signal handler"));
+        }
     }
     if (volumeChangedMember) {
         status = mMsgBus->RegisterSignalHandler(this,
                                                 static_cast<MessageReceiver::SignalHandler>(&SinkPlayer::VolumeChangedSignalHandler),
                                                 volumeChangedMember, NULL);
-        if (status != ER_OK)
+        if (status != ER_OK) {
             QCC_LogError(status, ("Failed to register VolumeChanged signal handler"));
+        }
     }
 }
 
@@ -284,12 +291,14 @@ bool SinkPlayer::SetDataSource(DataSource* theSource) {
 }
 
 bool SinkPlayer::SetPreferredFormat(const char* format) {
-    if (!AudioEncoder::CanCreate(format))
+    if (!AudioEncoder::CanCreate(format)) {
         return false;
+    }
     char* oldFormat = mPreferredFormat;
     mPreferredFormat = strdup(format);
-    if (oldFormat != NULL)
+    if (oldFormat != NULL) {
         free((void*)oldFormat);
+    }
     return true;
 }
 
@@ -306,8 +315,9 @@ void SinkPlayer::AddListener(SinkListener* listener) {
 void SinkPlayer::RemoveListener(SinkListener* listener) {
     mSinkListenersMutex->Lock();
     SinkListeners::iterator it = mSinkListeners.find(listener);
-    if (it != mSinkListeners.end())
+    if (it != mSinkListeners.end()) {
         mSinkListeners.erase(it);
+    }
     if (mSinkListeners.empty()) {
         mSinkListenerThread->Stop();
         mSinkListenerThread->Join();
@@ -375,10 +385,10 @@ ThreadReturn SinkPlayer::AddSinkThread(void* arg) {
         } \
         sp->mSinkListenersMutex->Unlock(); \
         sp->FreeSinkInfo(&si); \
-        if (asi->name != NULL) \
-            free((void*)asi->name); \
-        if (asi->path != NULL) \
-            free((void*)asi->path); \
+        if (asi->name != NULL) { \
+            free((void*)asi->name); } \
+        if (asi->path != NULL) { \
+            free((void*)asi->path); } \
         delete asi; \
         return NULL; \
 }
@@ -411,8 +421,9 @@ ThreadReturn SinkPlayer::AddSinkThread(void* arg) {
 
     sp->mSinksMutex->Lock();
     std::list<SinkInfo>::iterator sit = find_if(sp->mSinks.begin(), sp->mSinks.end(), FindSink(si.serviceName));
-    if (sit != sp->mSinks.end())
+    if (sit != sp->mSinks.end()) {
         sp->mSinks.erase(sit);
+    }
     sp->mSinks.push_back(si);
     sp->mSinksMutex->Unlock();
 
@@ -576,8 +587,9 @@ bool SinkPlayer::OpenSink(const char* name) {
         }
 
         diffTime = (newTime - time) / 2;
-        if (diffTime < 10000000)  // 10ms
+        if (diffTime < 10000000) { // 10ms
             break;
+        }
 
         /* Sleep for 1s and try again */
         SleepNanos(1000000000);
@@ -780,8 +792,9 @@ bool SinkPlayer::CloseSink(const char* name) {
 QStatus SinkPlayer::CloseSink(SinkInfo* si, bool lost) {
     Thread* t = NULL;
     mEmitThreadsMutex->Lock();
-    if (mEmitThreads.count(si->serviceName) > 0)
+    if (mEmitThreads.count(si->serviceName) > 0) {
         t = mEmitThreads[si->serviceName];
+    }
     mEmitThreadsMutex->Unlock();
 
     if (t != NULL) {
@@ -901,20 +914,23 @@ ThreadReturn SinkPlayer::EmitAudioThread(void* arg) {
     while (!selfThread->IsStopping() && si->inputDataBytesRemaining > 0) {
         while (!selfThread->IsStopping()) {
             status = si->fifoPositionHandler->WaitUntilReadyToEmit(50);
-            if (status == ER_OK)
+            if (status == ER_OK) {
                 break;
+            }
         }
 
-        if (status != ER_OK)
+        if (status != ER_OK) {
             break;
+        }
 
         // Get FifoPosition, try up to 15 times on timeout
         MsgArg fifoPositionReply;
         for (int i = 0; i < 15; i++) {
             fifoPositionReply.Clear();
             status = si->portObj->GetProperty(AUDIO_SINK_INTERFACE, "FifoPosition", fifoPositionReply);
-            if (status != ER_TIMEOUT)
+            if (status != ER_TIMEOUT) {
                 break;
+            }
             SleepNanos(2 * 1000000000); // 2s
         }
 
@@ -1018,8 +1034,9 @@ bool SinkPlayer::Play() {
             if (si->mState == SinkInfo::OPENED && mEmitThreads.count(si->serviceName) == 0) {
                 Message playReply(*mMsgBus);
                 QStatus status = si->portObj->MethodCall(AUDIO_SINK_INTERFACE, "Play", NULL, 0, playReply);
-                if (status != ER_OK)
+                if (status != ER_OK) {
                     QCC_LogError(status, ("Play error"));
+                }
 
                 EmitAudioInfo* eai = new EmitAudioInfo;
                 eai->si = si;
@@ -1063,8 +1080,9 @@ bool SinkPlayer::Pause() {
                 Message pauseReply(*mMsgBus);
                 MsgArg pauseArgs("t", pauseTimeNanos);
                 QStatus status = si->portObj->MethodCall(AUDIO_SINK_INTERFACE, "Pause", &pauseArgs, 1, pauseReply);
-                if (status != ER_OK)
+                if (status != ER_OK) {
                     QCC_LogError(status, ("Pause error"));
+                }
 
                 mEmitThreadsMutex->Lock();
                 Thread* t = mEmitThreads[si->serviceName];
@@ -1080,8 +1098,9 @@ bool SinkPlayer::Pause() {
                 status = si->portObj->MethodCallAsync(AUDIO_SINK_INTERFACE, "Flush",
                                                       this, static_cast<MessageReceiver::ReplyHandler>(&SinkPlayer::FlushReplyHandler),
                                                       &flushArgs, 1, si);
-                if (status != ER_OK)
+                if (status != ER_OK) {
                     QCC_LogError(status, ("Flush error"));
+                }
             }
             mEmitThreadsMutex->Unlock();
         }

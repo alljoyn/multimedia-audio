@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright (c) 2013, doubleTwist Corporation and AllSeen Alliance. All rights reserved.
+ * Copyright (c) 2013-2014, doubleTwist Corporation and AllSeen Alliance. All rights reserved.
  *
  *    Permission to use, copy, modify, and/or distribute this software for any
  *    purpose with or without fee is hereby granted, provided that the above
@@ -38,8 +38,9 @@ PortObject::PortObject(BusAttachment* bus, const char* path, StreamObject* strea
         { portIntf->GetMember("Connect"), static_cast<MessageReceiver::MethodHandler>(&PortObject::Connect) }
     };
     QStatus status = AddMethodHandlers(methodEntries, sizeof(methodEntries) / sizeof(methodEntries[0]));
-    if (status != ER_OK)
+    if (status != ER_OK) {
         QCC_LogError(status, ("Failed to register method handlers for PortObject"));
+    }
 
     mOwnershipLostMember = portIntf->GetMember("OwnershipLost");
     assert(mOwnershipLostMember);
@@ -69,8 +70,9 @@ QStatus PortObject::EmitOwnershipLostSignal(const char* newOwner) {
 
     uint8_t flags = 0;
     QStatus status = Signal(NULL, mStream->GetSessionId(), *mOwnershipLostMember, &newOwnerArg, 1, 0, flags);
-    if (status != ER_OK)
+    if (status != ER_OK) {
         QCC_LogError(status, ("Failed to emit OwnershipLost signal"));
+    }
 
     return status;
 }
@@ -98,8 +100,9 @@ QStatus PortObject::Get(const char* ifcName, const char* propName, MsgArg& val) 
         status = ER_BUS_NO_SUCH_INTERFACE;
     }
 
-    if (status == ER_BUS_NO_SUCH_INTERFACE || status == ER_BUS_NO_SUCH_PROPERTY)
+    if (status == ER_BUS_NO_SUCH_INTERFACE || status == ER_BUS_NO_SUCH_PROPERTY) {
         return BusObject::Get(ifcName, propName, val);
+    }
 
     return status;
 }
@@ -193,8 +196,9 @@ bool PortObject::IsConfigurable(char* type, size_t numParameters, MsgArg* parame
                 }
             }
 
-            if (parametersMatched)
+            if (parametersMatched) {
                 return true;
+            }
         }
     }
 
@@ -203,8 +207,9 @@ bool PortObject::IsConfigurable(char* type, size_t numParameters, MsgArg* parame
 
 MsgArg* PortObject::GetParameterValue(MsgArg* parameters, size_t numParameters, const char* name) {
     for (size_t i = 0; i < numParameters; i++)
-        if (0 == strcmp(parameters[i].v_dictEntry.key->v_string.str, name))
+        if (0 == strcmp(parameters[i].v_dictEntry.key->v_string.str, name)) {
             return parameters[i].v_dictEntry.val->v_variant.val;
+        }
     return NULL;
 }
 

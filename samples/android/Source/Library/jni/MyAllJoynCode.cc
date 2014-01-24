@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright (c) 2013, AllSeen Alliance. All rights reserved.
+ * Copyright (c) 2013-2014, AllSeen Alliance. All rights reserved.
  *
  *    Permission to use, copy, modify, and/or distribute this software for any
  *    purpose with or without fee is hereby granted, provided that the above
@@ -77,28 +77,32 @@ void MyAllJoynCode::SetDataSource(const char* dataSourcePath)
 
 void MyAllJoynCode::AddSink(const char*name, const char*path, uint16_t port)
 {
-    if (!mSinkPlayer->HasSink(name))
+    if (!mSinkPlayer->HasSink(name)) {
         mSinkPlayer->AddSink(name, port, path);
+    }
 }
 
 void MyAllJoynCode::RemoveSink(const char*name)
 {
-    if (mSinkPlayer->HasSink(name))
+    if (mSinkPlayer->HasSink(name)) {
         mSinkPlayer->RemoveSink(name);
+    }
 }
 
 void MyAllJoynCode::Start()
 {
     mSinkPlayer->Play();
-    if (wasStopped)
+    if (wasStopped) {
         mSinkPlayer->OpenAllSinks();
+    }
     wasStopped = false;
 }
 
 void MyAllJoynCode::Pause()
 {
-    if (mSinkPlayer->IsPlaying())
+    if (mSinkPlayer->IsPlaying()) {
         mSinkPlayer->Pause();
+    }
 }
 
 void MyAllJoynCode::Stop()

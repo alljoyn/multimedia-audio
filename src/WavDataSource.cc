@@ -4,7 +4,7 @@
  */
 
 /******************************************************************************
- * Copyright (c) 2013, doubleTwist Corporation and AllSeen Alliance. All rights reserved.
+ * Copyright (c) 2013-2014, doubleTwist Corporation and AllSeen Alliance. All rights reserved.
  *
  *    Permission to use, copy, modify, and/or distribute this software for any
  *    purpose with or without fee is hereby granted, provided that the above
@@ -101,24 +101,28 @@ void WavDataSource::Close() {
 bool WavDataSource::ReadHeader() {
     uint8_t buffer[20];
     size_t n = fread(buffer, 1, 4, mInputFile);
-    if (n != 4 || betoh32(*((uint32_t*)buffer)) != RIFF_IDENTIFIER)
+    if (n != 4 || betoh32(*((uint32_t*)buffer)) != RIFF_IDENTIFIER) {
         return false;
+    }
 
     n = fread(buffer, 1, 8, mInputFile);
-    if (n != 8 || betoh32(*((uint32_t*)&buffer[4])) != WAVE_IDENTIFIER)
+    if (n != 8 || betoh32(*((uint32_t*)&buffer[4])) != WAVE_IDENTIFIER) {
         return false;
+    }
 
     while (true) {
         n = fread(buffer, 1, 8, mInputFile);
-        if (n != 8)
+        if (n != 8) {
             return false;
+        }
         uint32_t chunkSize = ((int32_t)(buffer[7]) << 24) + ((int32_t)(buffer[6]) << 16) + ((int32_t)(buffer[5]) << 8) + buffer[4];
 
         switch (betoh32(*((uint32_t*)buffer))) {
         case FMT_IDENTIFIER:
             n = fread(buffer, 1, 16, mInputFile);
-            if (n != 16 || buffer[0] != 1 || buffer[1] != 0)              // if not PCM
+            if (n != 16 || buffer[0] != 1 || buffer[1] != 0) {            // if not PCM
                 return false;
+            }
             mChannelsPerFrame = buffer[2];
             mSampleRate = ((int32_t)(buffer[7]) << 24) + ((int32_t)(buffer[6]) << 16) + ((int32_t)(buffer[5]) << 8) + buffer[4];
             mBitsPerChannel = buffer[14];

@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright (c) 2013, doubleTwist Corporation and AllSeen Alliance. All rights reserved.
+ * Copyright (c) 2013-2014, doubleTwist Corporation and AllSeen Alliance. All rights reserved.
  *
  *    Permission to use, copy, modify, and/or distribute this software for any
  *    purpose with or without fee is hereby granted, provided that the above
@@ -43,10 +43,12 @@ class AboutStore : public PropertyStore {
         mFriendlyName = strdup(friendlyName);
     }
     ~AboutStore() {
-        if (mDeviceId != NULL)
+        if (mDeviceId != NULL) {
             free((void*)mDeviceId);
-        if (mFriendlyName != NULL)
+        }
+        if (mFriendlyName != NULL) {
             free((void*)mFriendlyName);
+        }
     }
     QStatus ReadAll(const char* languageTag, PropertyStore::Filter filter, MsgArg& all) {
         if (languageTag && strcmp(languageTag, "en") != 0) {
@@ -127,8 +129,9 @@ static int usage(const char* name) {
 
 /* Main entry point */
 int main(int argc, char** argv, char** envArg) {
-    if (argc > 4)
+    if (argc > 4) {
         return usage(argv[0]);
+    }
     const char* deviceName = "default";
     const char* mixerName = "default";
     const char* friendlyName = NULL;
@@ -156,8 +159,9 @@ int main(int argc, char** argv, char** envArg) {
     printf("AllJoyn Audio build info: %s\n", ajn::services::audio::GetBuildInfo());
 
     const char* connectArgs = getenv("BUS_ADDRESS");
-    if (connectArgs == NULL)
+    if (connectArgs == NULL) {
         connectArgs = "unix:abstract=alljoyn";
+    }
 
     BusAttachment* msgBus = new BusAttachment("SinkService", true);
     MyAllJoynListener* listener = new MyAllJoynListener(msgBus);
@@ -199,15 +203,17 @@ int main(int argc, char** argv, char** envArg) {
     SessionOpts opts(SessionOpts::TRAFFIC_MESSAGES, false, SessionOpts::PROXIMITY_ANY, TRANSPORT_ANY);
     if (status == ER_OK) {
         status = msgBus->BindSessionPort(sessionPort, opts, *listener);
-        if (status != ER_OK)
+        if (status != ER_OK) {
             fprintf(stderr, "BindSessionPort failed (%s)\n", QCC_StatusText(status));
+        }
     }
 
     /* Advertise name */
     if (status == ER_OK) {
         status = msgBus->AdvertiseName(name.c_str(), opts.transports);
-        if (status != ER_OK)
+        if (status != ER_OK) {
             printf("Failed to advertise name %s (%s)\n", name.c_str(), QCC_StatusText(status));
+        }
     }
 
     if (status == ER_OK) {
@@ -220,8 +226,9 @@ int main(int argc, char** argv, char** envArg) {
         aboutProps = new AboutStore(friendlyName);
         streamObj = new StreamObject(msgBus, "/Speaker/In", audioDevice, sessionPort, aboutProps);
         status = streamObj->Register(msgBus);
-        if (status != ER_OK)
+        if (status != ER_OK) {
             printf("Failed to register stream object (%s)\n", QCC_StatusText(status));
+        }
     }
 
     if (status == ER_OK) {

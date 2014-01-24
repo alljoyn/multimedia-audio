@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright (c) 2013, doubleTwist Corporation and AllSeen Alliance. All rights reserved.
+ * Copyright (c) 2013-2014, doubleTwist Corporation and AllSeen Alliance. All rights reserved.
  *
  *    Permission to use, copy, modify, and/or distribute this software for any
  *    purpose with or without fee is hereby granted, provided that the above
@@ -48,20 +48,23 @@ class TestClientListener : public BusListener, public MessageReceiver {
         size_t numObjectDescriptions = 0;
         MsgArg* objectDescriptions = NULL;
         QStatus status = message->GetArg(2)->Get("a(oas)", &numObjectDescriptions, &objectDescriptions);
-        if (status != ER_OK)
+        if (status != ER_OK) {
             fprintf(stderr, "Failed to get objectDescriptions: %s\n", QCC_StatusText(status));
+        }
         for (size_t i = 0; i < numObjectDescriptions; ++i) {
             char* objectPath = NULL;
             size_t numInterfaces = 0;
             MsgArg* interfaces = NULL;
             status = objectDescriptions[i].Get("(oas)", &objectPath, &numInterfaces, &interfaces);
-            if (status != ER_OK)
+            if (status != ER_OK) {
                 fprintf(stderr, "Failed to get interfaces: %s\n", QCC_StatusText(status));
+            }
             for (size_t j = 0; j < numInterfaces; ++j) {
                 char* intf;
                 status = interfaces[j].Get("s", &intf);
-                if (status != ER_OK)
+                if (status != ER_OK) {
                     fprintf(stderr, "Failed to get interface: %s\n", QCC_StatusText(status));
+                }
 
                 if (!strcmp(intf, AUDIO_SINK_INTERFACE)) {
                     serviceAnnounced = true;
@@ -71,15 +74,17 @@ class TestClientListener : public BusListener, public MessageReceiver {
             }
         }
 
-        if (!serviceAnnounced || service.path.empty())
+        if (!serviceAnnounced || service.path.empty()) {
             return;
+        }
 
         /*
          * Extract extra information from the service metadata.
          */
         status = message->GetArg(1)->Get("q", &service.port);
-        if (status != ER_OK)
+        if (status != ER_OK) {
             fprintf(stderr, "Failed to get SessionPort: %s\n", QCC_StatusText(status));
+        }
 
         /*
          * Now we've got all the info we need to join a session and begin doing useful work so cache it.
@@ -167,8 +172,9 @@ void AudioTest::SetUp() {
     QStatus status = ER_OK;
 
     const char* connectArgs = getenv("BUS_ADDRESS");
-    if (connectArgs == NULL)
+    if (connectArgs == NULL) {
         connectArgs = "unix:abstract=alljoyn";
+    }
 
     mMsgBus = new BusAttachment("AudioTest", true);
     status = mMsgBus->CreateInterfacesFromXml(INTERFACES_XML);
@@ -204,8 +210,9 @@ void AudioTest::SetUp() {
 
 void AudioTest::TearDown() {
 
-    if (sServiceName)
+    if (sServiceName) {
         mMsgBus->ReleaseName(sServiceName);
+    }
 
     if (mMsgBus != NULL) {
         mMsgBus->UnregisterBusListener(*mListener);

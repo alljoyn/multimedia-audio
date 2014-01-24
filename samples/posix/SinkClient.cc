@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright (c) 2013, doubleTwist Corporation and AllSeen Alliance. All rights reserved.
+ * Copyright (c) 2013-2014, doubleTwist Corporation and AllSeen Alliance. All rights reserved.
  *
  *    Permission to use, copy, modify, and/or distribute this software for any
  *    purpose with or without fee is hereby granted, provided that the above
@@ -42,8 +42,9 @@ class MySinkSearcher : public SinkSearcher {
         const char* name = sink->name.c_str();
         const char* path = sink->path.c_str();
         printf("Found \"%s\" %s objectPath=%s, sessionPort=%d\n", sink->friendlyName.c_str(), name, path, sink->port);
-        if (!g_sinkPlayer->HasSink(name))
+        if (!g_sinkPlayer->HasSink(name)) {
             g_sinkPlayer->AddSink(name, sink->port, path);
+        }
     }
 
     virtual void SinkLost(Service* sink) {
@@ -58,8 +59,9 @@ class MySinkListener : public SinkListener {
         sinks.push_back(name);
         g_sinkPlayer->OpenSink(name);
         /* Start playing when we have at least one sink. */
-        if (g_sinkPlayer->GetSinkCount() == 1)
+        if (g_sinkPlayer->GetSinkCount() == 1) {
             g_sinkPlayer->Play();
+        }
     }
 
     void SinkAddFailed(const char* name) {
@@ -98,8 +100,9 @@ class MySinkListener : public SinkListener {
             g_sinkPlayer->GetVolumeRange(it->c_str(), low, high, step);
             g_sinkPlayer->GetVolume(it->c_str(), value);
             double v = ((double)value - low) / (high - low) * 100.0;
-            if (v > volume)
+            if (v > volume) {
                 volume = v;
+            }
         }
         return volume;
     }
@@ -163,8 +166,9 @@ int main(int argc, char** argv, char** envArg) {
     signal(SIGINT, SigIntHandler);
 
     const char* connectArgs = getenv("BUS_ADDRESS");
-    if (connectArgs == NULL)
+    if (connectArgs == NULL) {
         connectArgs = "unix:abstract=alljoyn";
+    }
 
     /* Create message bus */
     BusAttachment* msgBus = new BusAttachment("SinkClient", true, 128);
@@ -172,15 +176,17 @@ int main(int argc, char** argv, char** envArg) {
     /* Start the msg bus */
     if (status == ER_OK) {
         status = msgBus->Start();
-        if (status != ER_OK)
+        if (status != ER_OK) {
             fprintf(stderr, "BusAttachment::Start failed\n");
+        }
     }
 
     /* Connect to the bus */
     if (status == ER_OK) {
         status = msgBus->Connect(connectArgs);
-        if (status != ER_OK)
+        if (status != ER_OK) {
             fprintf(stderr, "Failed to connect to \"%s\"\n", connectArgs);
+        }
     }
 
     /* Create SinkPlayer */
@@ -193,8 +199,9 @@ int main(int argc, char** argv, char** envArg) {
     MySinkSearcher searcher;
     if (status == ER_OK) {
         status = searcher.Register(msgBus);
-        if (status != ER_OK)
+        if (status != ER_OK) {
             fprintf(stderr, "Failed to register searcher (%s)\n", QCC_StatusText(status));
+        }
     }
 
     /* Set data source to WAV file */
@@ -214,12 +221,14 @@ int main(int argc, char** argv, char** envArg) {
         while (!g_interrupt && get_line(buf, sizeof(buf) / sizeof(buf[0]), stdin) != NULL) {
             int i;
             if (strcmp(buf, "play") == 0) {
-                if (!g_sinkPlayer->IsPlaying())
+                if (!g_sinkPlayer->IsPlaying()) {
                     g_sinkPlayer->Play();
+                }
 
             } else if (strcmp(buf, "pause") == 0) {
-                if (g_sinkPlayer->IsPlaying())
+                if (g_sinkPlayer->IsPlaying()) {
                     g_sinkPlayer->Pause();
+                }
 
             } else if (sscanf(buf, "volume %128s %d%%", name, &i) == 2) {
                 g_sinkPlayer->SetVolume(name, i);
@@ -228,8 +237,9 @@ int main(int argc, char** argv, char** envArg) {
             } else if (sscanf(buf, "volume %128s", name) == 1) {
                 int16_t low, high, step, volume;
                 if (g_sinkPlayer->GetVolumeRange(name, low, high, step) &&
-                    g_sinkPlayer->GetVolume(name, volume))
+                    g_sinkPlayer->GetVolume(name, volume)) {
                     printf("Volume is %d [%d,%d..%d]\n", volume, low, low + step, high);
+                }
             } else if (strcmp(buf, "volume") == 0) {
                 printf("Volume is %d%%\n", listener.GetVolume());
 
@@ -239,8 +249,9 @@ int main(int argc, char** argv, char** envArg) {
                 g_sinkPlayer->SetMute(name, i);
             } else if (strcmp(buf, "mute") == 0) {
                 bool mute;
-                if (g_sinkPlayer->GetMute(NULL, mute))
+                if (g_sinkPlayer->GetMute(NULL, mute)) {
                     printf("Mute is %s\n", mute ? "off" : "on");
+                }
 
             } else if (sscanf(buf, "open %128s", name) == 1) {
                 dataSource.Close();

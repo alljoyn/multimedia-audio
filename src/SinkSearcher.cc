@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright (c) 2013, doubleTwist Corporation and AllSeen Alliance. All rights reserved.
+ * Copyright (c) 2013-2014, doubleTwist Corporation and AllSeen Alliance. All rights reserved.
  *
  *    Permission to use, copy, modify, and/or distribute this software for any
  *    purpose with or without fee is hereby granted, provided that the above
@@ -49,20 +49,23 @@ void SinkSearcher::OnAnnounce(const InterfaceDescription::Member* member, const 
     size_t numObjectDescriptions = 0;
     MsgArg* objectDescriptions = NULL;
     QStatus status = message->GetArg(2)->Get("a(oas)", &numObjectDescriptions, &objectDescriptions);
-    if (status != ER_OK)
+    if (status != ER_OK) {
         QCC_LogError(status, ("Failed to get objectDescriptions"));
+    }
     for (size_t i = 0; i < numObjectDescriptions; ++i) {
         char* objectPath = NULL;
         size_t numInterfaces = 0;
         MsgArg* interfaces = NULL;
         status = objectDescriptions[i].Get("(oas)", &objectPath, &numInterfaces, &interfaces);
-        if (status != ER_OK)
+        if (status != ER_OK) {
             QCC_LogError(status, ("Failed to get interfaces"));
+        }
         for (size_t j = 0; j < numInterfaces; ++j) {
             char* intf;
             status = interfaces[j].Get("s", &intf);
-            if (status != ER_OK)
+            if (status != ER_OK) {
                 QCC_LogError(status, ("Failed to get interface"));
+            }
 
             if (!strcmp(intf, AUDIO_SINK_INTERFACE)) {
                 serviceAnnounced = true;
@@ -72,15 +75,17 @@ void SinkSearcher::OnAnnounce(const InterfaceDescription::Member* member, const 
         }
     }
 
-    if (!serviceAnnounced || service.path.empty())
+    if (!serviceAnnounced || service.path.empty()) {
         return;
+    }
 
     /*
      * Extract extra information from the service metadata.
      */
     status = message->GetArg(1)->Get("q", &service.port);
-    if (status != ER_OK)
+    if (status != ER_OK) {
         QCC_LogError(status, ("Failed to get SessionPort"));
+    }
     const char* deviceName = NULL;
     status = message->GetArg(3)->GetElement("{ss}", ANNOUNCE_DEVICE_NAME, &deviceName);
     if (status != ER_OK) {
@@ -114,46 +119,53 @@ void SinkSearcher::OnAnnounce(const InterfaceDescription::Member* member, const 
      */
     mBus->EnableConcurrentCallbacks();
     status = mBus->FindAdvertisedName(serviceName);
-    if (status != ER_OK)
+    if (status != ER_OK) {
         QCC_LogError(status, ("Failed to call FindAdvertisedName"));
+    }
 }
 
 QStatus SinkSearcher::Register(BusAttachment* bus) {
     bus->RegisterBusListener(*this);
 
     QStatus status = bus->CreateInterfacesFromXml(ABOUT_XML);
-    if (status != ER_OK)
+    if (status != ER_OK) {
         QCC_LogError(status, ("CreateInterfacesFromXml failed"));
+    }
 
     QCC_DbgHLPrintf(("Searching for sinks"));
     if (status == ER_OK) {
         status = bus->RegisterSignalHandler(this,
                                             static_cast<MessageReceiver::SignalHandler>(&SinkSearcher::OnAnnounce),
                                             bus->GetInterface(ABOUT_INTERFACE)->GetMember("Announce"), 0);
-        if (status != ER_OK)
+        if (status != ER_OK) {
             QCC_LogError(status, ("RegisterSignalHandler failed"));
+        }
     }
 
     if (status == ER_OK) {
         status = bus->AddMatch(ANNOUNCE_MATCH_RULE);
-        if (status != ER_OK)
+        if (status != ER_OK) {
             QCC_LogError(status, ("AddMatch failed"));
+        }
     }
 
     return status;
 }
 
 void SinkSearcher::Unregister() {
-    if (mBus == NULL)
+    if (mBus == NULL) {
         return;
+    }
 
     QStatus status = mBus->RemoveMatch(ANNOUNCE_MATCH_RULE);
-    if (status != ER_OK)
+    if (status != ER_OK) {
         QCC_LogError(status, ("RemoveMatch failed"));
+    }
 
     status = mBus->UnregisterAllHandlers(this);
-    if (status != ER_OK)
+    if (status != ER_OK) {
         QCC_LogError(status, ("UnregisterAllHandlers failed"));
+    }
 
     mBus->UnregisterBusListener(*this);
 }

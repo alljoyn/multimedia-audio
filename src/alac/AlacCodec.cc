@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright (c) 2013, doubleTwist Corporation and AllSeen Alliance. All rights reserved.
+ * Copyright (c) 2013-2014, doubleTwist Corporation and AllSeen Alliance. All rights reserved.
  *
  *    Permission to use, copy, modify, and/or distribute this software for any
  *    purpose with or without fee is hereby granted, provided that the above
@@ -40,8 +40,9 @@ enum {
 
 MsgArg* GetParameterValue(MsgArg* parameters, size_t numParameters, const char* name) {
     for (size_t i = 0; i < numParameters; i++)
-        if (0 == strcmp(parameters[i].v_dictEntry.key->v_string.str, name))
+        if (0 == strcmp(parameters[i].v_dictEntry.key->v_string.str, name)) {
             return parameters[i].v_dictEntry.val->v_variant.val;
+        }
     return NULL;
 }
 

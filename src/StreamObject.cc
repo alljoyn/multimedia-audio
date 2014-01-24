@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright (c) 2013, doubleTwist Corporation and AllSeen Alliance. All rights reserved.
+ * Copyright (c) 2013-2014, doubleTwist Corporation and AllSeen Alliance. All rights reserved.
  *
  *    Permission to use, copy, modify, and/or distribute this software for any
  *    purpose with or without fee is hereby granted, provided that the above
@@ -50,8 +50,9 @@ StreamObject::StreamObject(BusAttachment* bus, const char* path, AudioDevice* au
     mMetadataSinkObjectPath = strdup((String(path) + String("/Metadata")).c_str());
 
     QStatus status = bus->CreateInterfacesFromXml(INTERFACES_XML);
-    if (status != ER_OK)
+    if (status != ER_OK) {
         QCC_LogError(status, ("Failed to create interfaces from XML"));
+    }
 
     const InterfaceDescription* streamIntf = bus->GetInterface(STREAM_INTERFACE);
     assert(streamIntf);
@@ -69,18 +70,22 @@ StreamObject::StreamObject(BusAttachment* bus, const char* path, AudioDevice* au
         { clockIntf->GetMember("AdjustTime"), static_cast<MessageReceiver::MethodHandler>(&StreamObject::AdjustTime) }
     };
     status = AddMethodHandlers(methodEntries, sizeof(methodEntries) / sizeof(methodEntries[0]));
-    if (status != ER_OK)
+    if (status != ER_OK) {
         QCC_LogError(status, ("Failed to register method handlers for StreamObject"));
+    }
 }
 
 StreamObject::~StreamObject() {
     delete mAbout;
-    if (mAudioSinkObjectPath != NULL)
+    if (mAudioSinkObjectPath != NULL) {
         free((void*)mAudioSinkObjectPath);
-    if (mImageSinkObjectPath != NULL)
+    }
+    if (mImageSinkObjectPath != NULL) {
         free((void*)mImageSinkObjectPath);
-    if (mMetadataSinkObjectPath != NULL)
+    }
+    if (mMetadataSinkObjectPath != NULL) {
         free((void*)mMetadataSinkObjectPath);
+    }
 
     mPortsMutex->Lock();
     for (std::vector<PortObject*>::iterator it = mPorts.begin(); it != mPorts.end(); ++it) {
@@ -131,8 +136,9 @@ QStatus StreamObject::Register(BusAttachment* bus) {
     mPortsMutex->Unlock();
 
     QStatus status = mAbout->Announce();
-    if (status != ER_OK)
+    if (status != ER_OK) {
         QCC_LogError(status, ("Failed to announce"));
+    }
 
     return status;
 }
@@ -181,8 +187,9 @@ QStatus StreamObject::Get(const char* ifcName, const char* propName, MsgArg& val
         status = ER_BUS_NO_SUCH_INTERFACE;
     }
 
-    if (status == ER_BUS_NO_SUCH_INTERFACE || status == ER_BUS_NO_SUCH_PROPERTY)
+    if (status == ER_BUS_NO_SUCH_INTERFACE || status == ER_BUS_NO_SUCH_PROPERTY) {
         return BusObject::Get(ifcName, propName, val);
+    }
 
     return status;
 }
@@ -320,8 +327,9 @@ uint64_t StreamObject::GetCurrentTimeNanos() {
 
 void StreamObject::SleepUntilTimeNanos(uint64_t timeNanos) {
     uint64_t now = GetCurrentTimeNanos();
-    if (timeNanos > now)
+    if (timeNanos > now) {
         SleepNanos(timeNanos - now);
+    }
 }
 
 }

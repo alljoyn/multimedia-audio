@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright (c) 2013, doubleTwist Corporation and AllSeen Alliance. All rights reserved.
+ * Copyright (c) 2013-2014, doubleTwist Corporation and AllSeen Alliance. All rights reserved.
  *
  *    Permission to use, copy, modify, and/or distribute this software for any
  *    purpose with or without fee is hereby granted, provided that the above
@@ -232,8 +232,9 @@ const char* TestSignalHandler::GetNewOwner() {
 QStatus TestSignalHandler::WaitUntilReadyToEmit(uint32_t waitMs) {
 
     QStatus status = ER_OK;
-    if (!mReadyToEmitEvent->IsSet())
+    if (!mReadyToEmitEvent->IsSet()) {
         status = Event::Wait(*mReadyToEmitEvent, waitMs);
+    }
     mReadyToEmitEvent->ResetEvent();
     return status;
 }
@@ -241,8 +242,9 @@ QStatus TestSignalHandler::WaitUntilReadyToEmit(uint32_t waitMs) {
 QStatus TestSignalHandler::WaitForPlayStateChanged(uint32_t waitMs) {
 
     QStatus status = ER_OK;
-    if (!mPlayStateChangedEvent->IsSet())
+    if (!mPlayStateChangedEvent->IsSet()) {
         status = Event::Wait(*mPlayStateChangedEvent, waitMs);
+    }
     mPlayStateChangedEvent->ResetEvent();
     return status;
 }
@@ -250,8 +252,9 @@ QStatus TestSignalHandler::WaitForPlayStateChanged(uint32_t waitMs) {
 QStatus TestSignalHandler::WaitForFifoPositionChanged(uint32_t waitMs) {
 
     QStatus status = ER_OK;
-    if (!mFifoPositionChangedEvent->IsSet())
+    if (!mFifoPositionChangedEvent->IsSet()) {
         status = Event::Wait(*mFifoPositionChangedEvent, waitMs);
+    }
     mFifoPositionChangedEvent->ResetEvent();
     return status;
 }
@@ -259,8 +262,9 @@ QStatus TestSignalHandler::WaitForFifoPositionChanged(uint32_t waitMs) {
 QStatus TestSignalHandler::WaitForOwnershipLost(uint32_t waitMs) {
 
     QStatus status = ER_OK;
-    if (!mOwnershipLostEvent->IsSet())
+    if (!mOwnershipLostEvent->IsSet()) {
         status = Event::Wait(*mOwnershipLostEvent, waitMs);
+    }
     mOwnershipLostEvent->ResetEvent();
     return status;
 }
@@ -268,8 +272,9 @@ QStatus TestSignalHandler::WaitForOwnershipLost(uint32_t waitMs) {
 QStatus TestSignalHandler::WaitForMuteChanged(uint32_t waitMs) {
 
     QStatus status = ER_OK;
-    if (!mMuteChangedEvent->IsSet())
+    if (!mMuteChangedEvent->IsSet()) {
         status = Event::Wait(*mMuteChangedEvent, waitMs);
+    }
     mMuteChangedEvent->ResetEvent();
     return status;
 }
@@ -277,8 +282,9 @@ QStatus TestSignalHandler::WaitForMuteChanged(uint32_t waitMs) {
 QStatus TestSignalHandler::WaitForVolumeChanged(uint32_t waitMs) {
 
     QStatus status = ER_OK;
-    if (!mVolumeChangedEvent->IsSet())
+    if (!mVolumeChangedEvent->IsSet()) {
         status = Event::Wait(*mVolumeChangedEvent, waitMs);
+    }
     mVolumeChangedEvent->ResetEvent();
     return status;
 }

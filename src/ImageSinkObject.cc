@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright (c) 2013, doubleTwist Corporation and AllSeen Alliance. All rights reserved.
+ * Copyright (c) 2013-2014, doubleTwist Corporation and AllSeen Alliance. All rights reserved.
  *
  *    Permission to use, copy, modify, and/or distribute this software for any
  *    purpose with or without fee is hereby granted, provided that the above
@@ -56,8 +56,9 @@ ImageSinkObject::ImageSinkObject(BusAttachment* bus, const char* path, StreamObj
     QStatus status = bus->RegisterSignalHandler(this,
                                                 static_cast<MessageReceiver::SignalHandler>(&ImageSinkObject::ImageDataSignalHandler),
                                                 imageDataMember, NULL);
-    if (status != ER_OK)
+    if (status != ER_OK) {
         QCC_LogError(status, ("Failed to register image signal handler"));
+    }
 }
 
 QStatus ImageSinkObject::Get(const char* ifcName, const char* propName, MsgArg& val) {
@@ -75,8 +76,9 @@ QStatus ImageSinkObject::Get(const char* ifcName, const char* propName, MsgArg& 
         status = ER_BUS_NO_SUCH_INTERFACE;
     }
 
-    if (status == ER_BUS_NO_SUCH_INTERFACE || status == ER_BUS_NO_SUCH_PROPERTY)
+    if (status == ER_BUS_NO_SUCH_INTERFACE || status == ER_BUS_NO_SUCH_PROPERTY) {
         return PortObject::Get(ifcName, propName, val);
+    }
 
     return status;
 }

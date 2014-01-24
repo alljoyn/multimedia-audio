@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright (c) 2013, doubleTwist Corporation and AllSeen Alliance. All rights reserved.
+ * Copyright (c) 2013-2014, doubleTwist Corporation and AllSeen Alliance. All rights reserved.
  *
  *    Permission to use, copy, modify, and/or distribute this software for any
  *    purpose with or without fee is hereby granted, provided that the above
@@ -40,47 +40,56 @@ void AudioDecoder::GetCapabilities(Capability** capabilities, size_t* numCapabil
 #ifdef WITH_ALAC
     bool alacEnabled = true;
     char* e = getenv("DISABLE_ALAC");
-    if (e != NULL && strcmp(e, "1") == 0)
+    if (e != NULL && strcmp(e, "1") == 0) {
         alacEnabled = false;
-    if (alacEnabled)
+    }
+    if (alacEnabled) {
         ++*numCapabilities;
+    }
 #endif
 
     int i = 0;
     *capabilities = new Capability[*numCapabilities];
     RawDecoder::GetCapability(&(*capabilities)[i++]);
 #ifdef WITH_ALAC
-    if (alacEnabled)
+    if (alacEnabled) {
         AlacDecoder::GetCapability(&(*capabilities)[i++]);
+    }
 #endif
 }
 
 AudioDecoder* AudioDecoder::Create(const char* type) {
-    if (strcmp(type, MIMETYPE_AUDIO_RAW) == 0)
+    if (strcmp(type, MIMETYPE_AUDIO_RAW) == 0) {
         return new RawDecoder();
+    }
 #ifdef WITH_ALAC
-    else if (strcmp(type, MIMETYPE_AUDIO_ALAC) == 0)
+    else if (strcmp(type, MIMETYPE_AUDIO_ALAC) == 0) {
         return new AlacDecoder();
+    }
 #endif
     return NULL;
 }
 
 bool AudioEncoder::CanCreate(const char* type) {
-    if (strcmp(type, MIMETYPE_AUDIO_RAW) == 0)
+    if (strcmp(type, MIMETYPE_AUDIO_RAW) == 0) {
         return true;
+    }
 #ifdef WITH_ALAC
-    else if (strcmp(type, MIMETYPE_AUDIO_ALAC) == 0)
+    else if (strcmp(type, MIMETYPE_AUDIO_ALAC) == 0) {
         return true;
+    }
 #endif
     return false;
 }
 
 AudioEncoder* AudioEncoder::Create(const char* type) {
-    if (strcmp(type, MIMETYPE_AUDIO_RAW) == 0)
+    if (strcmp(type, MIMETYPE_AUDIO_RAW) == 0) {
         return new RawEncoder();
+    }
 #ifdef WITH_ALAC
-    else if (strcmp(type, MIMETYPE_AUDIO_ALAC) == 0)
+    else if (strcmp(type, MIMETYPE_AUDIO_ALAC) == 0) {
         return new AlacEncoder();
+    }
 #endif
     return NULL;
 }
