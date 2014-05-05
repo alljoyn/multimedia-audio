@@ -27,7 +27,7 @@
 #define QCC_MODULE "ALLJOYN_AUDIO"
 
 #define NUM_BUFFERS 2
-#define BYTES_PER_FRAME 4096
+#define BUFFER_SIZE_IN_BYTES 4096
 
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
 
@@ -36,7 +36,7 @@ namespace services {
 
 AndroidDevice::AndroidDevice() :
     mMute(false), mVolumeValue(100), mSLEngineObject(NULL), mOutputMixObject(NULL), mBufferQueuePlayerObject(NULL),
-    mPlay(NULL), mBufferQueue(NULL), mNumberOfFrames(0), mBuffersAvailable(2), mBufferIndex(0), mListenersMutex(new qcc::Mutex())
+    mPlay(NULL), mBufferQueue(NULL), mBytesPerFrame(0), mBuffersAvailable(2), mBufferIndex(0), mListenersMutex(new qcc::Mutex())
 {
     mBufferMutex = new qcc::Mutex();
     mAudioBuffers = new uint8_t *[NUM_BUFFERS];
@@ -150,11 +150,11 @@ bool AndroidDevice::Open(const char*format, uint32_t sampleRate, uint32_t numCha
     }
 
     //Compute the frame size and return how many bytes we want the AllJoyn Audio Streaming Engine to buffer
-    mNumberOfFrames = (16 >> 3) * numChannels;
-    bufferSize = BYTES_PER_FRAME * mNumberOfFrames;
+    mBytesPerFrame = (16 >> 3) * numChannels;
+    bufferSize = FRAME_BYTE_SIZE / mBytesPerFrame;
     for (int i = 0; i < NUM_BUFFERS; i++) {
         if (mAudioBuffers[i] == NULL) {
-            mAudioBuffers[i] = (uint8_t*)malloc(bufferSize * sizeof(uint8_t));
+            mAudioBuffers[i] = (uint8_t*)malloc( FRAME_BYTE_SIZE );
         }
     }
     mBuffersAvailable = 2;
@@ -291,11 +291,11 @@ bool AndroidDevice::Write(const uint8_t*buffer, uint32_t bufferSizeInFrames)
         SleepNanos(1000000);         // 1/1000th of a second
     }
     mBufferMutex->Lock();
-    bufferSizeInFrames *= mNumberOfFrames;
+    uint32_t bufferSizeInBytes = bufferSizeInFrames * mBytesPerFrame;
     SLresult result;
-    memset(mAudioBuffers[mBufferIndex], 0, bufferSizeInFrames);
-    memcpy(mAudioBuffers[mBufferIndex], buffer, bufferSizeInFrames);
-    result = (*mBufferQueue)->Enqueue(mBufferQueue, mAudioBuffers[mBufferIndex], bufferSizeInFrames);
+    memset(mAudioBuffers[mBufferIndex], 0, bufferSizeInBytes);
+    memcpy(mAudioBuffers[mBufferIndex], buffer, bufferSizeInBytes);
+    result = (*mBufferQueue)->Enqueue(mBufferQueue, mAudioBuffers[mBufferIndex], bufferSizeInBytes);
     if (SL_RESULT_SUCCESS != result) {
         mBufferMutex->Unlock();
         return false;

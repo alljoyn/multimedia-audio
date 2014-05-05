@@ -3,7 +3,7 @@
  * Audio device access using the Android NDK API.
  */
 /******************************************************************************
- * Copyright (c) 2013, AllSeen Alliance. All rights reserved.
+ * Copyright (c) 2013-2014, AllSeen Alliance. All rights reserved.
  *
  *    Permission to use, copy, modify, and/or distribute this software for any
  *    purpose with or without fee is hereby granted, provided that the above
@@ -76,7 +76,7 @@ class AndroidDevice : public AudioDevice {
     SLVolumeItf mVolume;
     SLAndroidSimpleBufferQueueItf mBufferQueue;
 
-    uint32_t mNumberOfFrames;
+    uint32_t mBytesPerFrame;
     qcc::Mutex* mBufferMutex;
     uint8_t mBuffersAvailable;
     uint8_t** mAudioBuffers;
