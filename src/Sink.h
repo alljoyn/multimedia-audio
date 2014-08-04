@@ -151,8 +151,16 @@ struct PlayState {
     <arg name=\"version\" type=\"q\"/> \
     <arg name=\"port\" type=\"q\"/> \
     <arg name=\"objectDescriptions\" type=\"a(oas)\"/> \
-    <arg name=\"serviceMetadata\" type=\"a{sv}\"/> \
- </signal> \
+    <arg name=\"aboutData\" type=\"a{sv}\"/> \
+  </signal> \
+  <method name=\"GetAboutData\">\
+    <arg name=\"languageTag\" type=\"s\" direction=\"in\"/> \
+    <arg name=\"aboutData\" type=\"a{sv}\" direction=\"out\"/> \
+  </method> \
+  <method name=\"GetObjectDescription\">\
+    <arg name=\"Control\" type=\"a(oas)\" direction=\"out\"/> \
+  </method> \
+  <property name=\"Version\" type=\"q\" access=\"read\"/> \
 </interface>"
 /** The match rule for receiving Announce signals. */
 #define ANNOUNCE_MATCH_RULE "type='signal',interface='" ABOUT_INTERFACE "',member='Announce',sessionless='t'"
