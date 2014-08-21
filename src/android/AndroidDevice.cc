@@ -151,10 +151,10 @@ bool AndroidDevice::Open(const char*format, uint32_t sampleRate, uint32_t numCha
 
     //Compute the frame size and return how many bytes we want the AllJoyn Audio Streaming Engine to buffer
     mBytesPerFrame = (16 >> 3) * numChannels;
-    bufferSize = FRAME_BYTE_SIZE / mBytesPerFrame;
+    bufferSize = BUFFER_SIZE_IN_BYTES / mBytesPerFrame;
     for (int i = 0; i < NUM_BUFFERS; i++) {
         if (mAudioBuffers[i] == NULL) {
-            mAudioBuffers[i] = (uint8_t*)malloc( FRAME_BYTE_SIZE );
+            mAudioBuffers[i] = (uint8_t*)malloc(BUFFER_SIZE_IN_BYTES);
         }
     }
     mBuffersAvailable = 2;

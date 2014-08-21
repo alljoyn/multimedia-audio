@@ -20,6 +20,7 @@
 
 #include "Sink.h"
 #include "gtest/gtest.h"
+#include <math.h>
 
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
@@ -286,9 +287,7 @@ class VolumeControlTest : public testing::Test {
         return signalHandler->WaitForMuteChanged(timeoutMs);
     }
 
-    QStatus GetVolumeRange(ProxyBusObject* port, int16_t& low, int16_t& high) {
-
-        int16_t step;
+    QStatus GetVolumeRange(ProxyBusObject* port, int16_t& low, int16_t& high, int16_t& step) {
         MsgArg reply;
         QStatus status = port->GetProperty(VOLUME_INTERFACE, "VolumeRange", reply);
         if (status != ER_OK) { return status; }
@@ -312,6 +311,13 @@ class VolumeControlTest : public testing::Test {
         MsgArg arg;
         arg.Set("n", volume);
         return port->SetProperty(VOLUME_INTERFACE, "Volume", arg);
+    }
+
+    QStatus AdjustVolumePercent(ProxyBusObject* port, double change) {
+        Message msg(*mMsgBus);
+        MsgArg arg;
+        arg.Set("d", change);
+        return port->MethodCall(VOLUME_INTERFACE, "AdjustVolumePercent", &arg, 1, msg);
     }
 
     QStatus WaitForVolumeChanged(uint32_t timeoutMs) {
@@ -355,8 +361,8 @@ TEST_F(VolumeControlTest, SetValidVolume) {
     EXPECT_EQ(ER_OK, OpenStream(stream));
     ProxyBusObject* port = GetRawPort(stream);
     ASSERT_TRUE(port);
-    int16_t low, high;
-    EXPECT_EQ(ER_OK, GetVolumeRange(port, low, high));
+    int16_t low, high, step;
+    EXPECT_EQ(ER_OK, GetVolumeRange(port, low, high, step));
     int16_t currentVol;
     EXPECT_EQ(ER_OK, GetVolume(port, currentVol));
 
@@ -381,8 +387,8 @@ TEST_F(VolumeControlTest, SetInvalidVolume) {
     EXPECT_EQ(ER_OK, OpenStream(stream));
     ProxyBusObject* port = GetRawPort(stream);
     ASSERT_TRUE(port);
-    int16_t low, high;
-    EXPECT_EQ(GetVolumeRange(port, low, high), ER_OK);
+    int16_t low, high, step;
+    EXPECT_EQ(GetVolumeRange(port, low, high, step), ER_OK);
 
     if (high != INT16_MAX) {
         EXPECT_NE(ER_OK, SetVolume(port, INT16_MAX));
@@ -399,8 +405,8 @@ TEST_F(VolumeControlTest, IndependenceOfMuteAndVolume) {
     EXPECT_EQ(ER_OK, OpenStream(stream));
     ProxyBusObject* port = GetRawPort(stream);
     ASSERT_TRUE(port);
-    int16_t low, high;
-    EXPECT_EQ(GetVolumeRange(port, low, high), ER_OK);
+    int16_t low, high, step;
+    EXPECT_EQ(GetVolumeRange(port, low, high, step), ER_OK);
 
     int16_t volume = ((high - low) / 2) + low, currentVol = low, newVol = low + 1;
     EXPECT_EQ(ER_OK, SetVolume(port, volume));
@@ -445,8 +451,8 @@ TEST_F(VolumeControlTest, AdjustVolume) {
     EXPECT_EQ(ER_OK, OpenStream(stream));
     ProxyBusObject* port = GetRawPort(stream);
     ASSERT_TRUE(port);
-    int16_t low, high;
-    EXPECT_EQ(GetVolumeRange(port, low, high), ER_OK);
+    int16_t low, high, step;
+    EXPECT_EQ(GetVolumeRange(port, low, high, step), ER_OK);
 
     int16_t volume;
     int16_t delta = 2;
@@ -470,8 +476,8 @@ TEST_F(VolumeControlTest, AdjustInvalidVolume) {
     EXPECT_EQ(ER_OK, OpenStream(stream));
     ProxyBusObject* port = GetRawPort(stream);
     ASSERT_TRUE(port);
-    int16_t low, high;
-    EXPECT_EQ(GetVolumeRange(port, low, high), ER_OK);
+    int16_t low, high, step;
+    EXPECT_EQ(GetVolumeRange(port, low, high, step), ER_OK);
 
     if (low != INT16_MIN && high != INT16_MAX) {
         int16_t delta = high - low + 1;
@@ -479,4 +485,49 @@ TEST_F(VolumeControlTest, AdjustInvalidVolume) {
         EXPECT_NE(ER_OK, AdjustVolume(port, delta * -1));
     }
     delete stream;
+}
+
+TEST_F(VolumeControlTest, AdjustVolumePercent) {
+    ProxyBusObject* stream = CreateStream();
+    EXPECT_EQ(ER_OK, OpenStream(stream));
+    ProxyBusObject* port = GetRawPort(stream);
+    ASSERT_TRUE(port);
+    int16_t low, high, step;
+    EXPECT_EQ(GetVolumeRange(port, low, high, step), ER_OK);
+
+    EXPECT_EQ(AdjustVolumePercent(port, 1.0), ER_OK);
+    EXPECT_EQ(ER_OK, WaitForVolumeChanged(AudioTest::sTimeout));
+    EXPECT_EQ(GetVolumeChange(), high);
+
+    EXPECT_EQ(AdjustVolumePercent(port, -1.0), ER_OK);
+    EXPECT_EQ(ER_OK, WaitForVolumeChanged(AudioTest::sTimeout));
+    EXPECT_EQ(GetVolumeChange(), low);
+
+    EXPECT_EQ(AdjustVolumePercent(port, 0.5), ER_OK);
+    EXPECT_EQ(ER_OK, WaitForVolumeChanged(AudioTest::sTimeout));
+    int16_t v50 = GetVolumeChange();
+    EXPECT_NEAR(v50, low + floor((high - low) * 0.5), step);
+
+    EXPECT_EQ(AdjustVolumePercent(port, 0.25), ER_OK);
+    EXPECT_EQ(ER_OK, WaitForVolumeChanged(AudioTest::sTimeout));
+    int16_t v75 = GetVolumeChange();
+    EXPECT_NEAR(v75, v50 + floor((high - v50) * 0.25), step);
+
+    EXPECT_EQ(AdjustVolumePercent(port, -0.13), ER_OK);
+    EXPECT_EQ(ER_OK, WaitForVolumeChanged(AudioTest::sTimeout));
+    EXPECT_NEAR(GetVolumeChange(), v75 + floor((v75 - low) * -0.13), step);
+}
+
+TEST_F(VolumeControlTest, VolumeEnabled) {
+    ProxyBusObject* stream = CreateStream();
+    EXPECT_EQ(ER_OK, OpenStream(stream));
+    ProxyBusObject* port = GetRawPort(stream);
+    ASSERT_TRUE(port);
+
+    MsgArg reply;
+    EXPECT_EQ(ER_OK, port->GetProperty(VOLUME_INTERFACE, "Enabled", reply));
+
+    MsgArg arg;
+    arg.Set("b", false);
+    EXPECT_NE(ER_OK, port->SetProperty(VOLUME_INTERFACE, "Enabled", arg));
 }

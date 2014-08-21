@@ -4,7 +4,7 @@
  */
 
 /******************************************************************************
- * Copyright (c) 2013, doubleTwist Corporation and AllSeen Alliance. All rights reserved.
+ * Copyright (c) 2013-2014, doubleTwist Corporation and AllSeen Alliance. All rights reserved.
  *
  *    Permission to use, copy, modify, and/or distribute this software for any
  *    purpose with or without fee is hereby granted, provided that the above
@@ -204,6 +204,13 @@ class AudioDevice {
      * @see AddListener()
      */
     virtual void RemoveListener(AudioDeviceListener* listener) = 0;
+
+    /**
+     * Is volume control enabled?
+     *
+     * @return true if volume control is enabled
+     */
+    virtual bool GetEnabled() = 0;
 };
 
 }

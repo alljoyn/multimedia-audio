@@ -4,7 +4,7 @@
  */
 
 /******************************************************************************
- * Copyright (c) 2013, doubleTwist Corporation and AllSeen Alliance. All rights reserved.
+ * Copyright (c) 2013-2014, doubleTwist Corporation and AllSeen Alliance. All rights reserved.
  *
  *    Permission to use, copy, modify, and/or distribute this software for any
  *    purpose with or without fee is hereby granted, provided that the above
@@ -68,6 +68,7 @@ class ALSADevice : public AudioDevice {
     bool SetVolume(int16_t volume);
     void AddListener(AudioDeviceListener* listener);
     void RemoveListener(AudioDeviceListener* listener);
+    bool GetEnabled() { return true; }
 
   private:
     int16_t ALSAToAllJoyn(long volume);

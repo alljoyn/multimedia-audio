@@ -4,7 +4,7 @@
  */
 
 /******************************************************************************
- * Copyright (c) 2013, doubleTwist Corporation and AllSeen Alliance. All rights reserved.
+ * Copyright (c) 2013-2014, doubleTwist Corporation and AllSeen Alliance. All rights reserved.
  *
  *    Permission to use, copy, modify, and/or distribute this software for any
  *    purpose with or without fee is hereby granted, provided that the above
@@ -88,12 +88,14 @@ class AudioSinkObject : public PortObject, public AudioDeviceListener {
     QStatus EmitFifoPositionChangedSignal();
     QStatus EmitVolumeChangedSignal(int16_t volume);
     QStatus EmitMuteChangedSignal(bool mute);
+    QStatus EmitVolumeControlEnabledChangedSignal();
 
     void DoConnect(const ajn::InterfaceDescription::Member* member, ajn::Message& msg);
     void Play(const ajn::InterfaceDescription::Member* member, ajn::Message& msg);
     void Pause(const ajn::InterfaceDescription::Member* member, ajn::Message& msg);
     void Flush(const ajn::InterfaceDescription::Member* member, ajn::Message& msg);
     void AdjustVolume(const ajn::InterfaceDescription::Member* member, ajn::Message& msg);
+    void AdjustVolumePercent(const ajn::InterfaceDescription::Member* member, ajn::Message& msg);
 
     void DoPause();
     static qcc::ThreadReturn PauseThread(void* arg);
@@ -124,6 +126,7 @@ class AudioSinkObject : public PortObject, public AudioDeviceListener {
     const ajn::InterfaceDescription::Member* mFifoPositionChangedMember;
     const ajn::InterfaceDescription::Member* mVolumeChangedMember;
     const ajn::InterfaceDescription::Member* mMuteChangedMember;
+    const ajn::InterfaceDescription::Member* mEnabledChangedMember;
 
     uint8_t mPlayState;
 

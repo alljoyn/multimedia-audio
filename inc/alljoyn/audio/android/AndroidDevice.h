@@ -57,6 +57,7 @@ class AndroidDevice : public AudioDevice {
     bool GetVolumeRange(int16_t& low, int16_t& high, int16_t& step);
     bool GetVolume(int16_t& volume);
     bool SetVolume(int16_t volume);
+    bool GetEnabled() { return true; }
 
     void AddListener(AudioDeviceListener* listener);
     void RemoveListener(AudioDeviceListener* listener);
