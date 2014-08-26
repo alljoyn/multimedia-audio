@@ -25,6 +25,7 @@
 #include <algorithm>
 #include <inttypes.h>
 #include <stdint.h>
+#include <math.h>
 
 #define QCC_MODULE "ALLJOYN_AUDIO"
 
@@ -70,6 +71,7 @@ AudioSinkObject::AudioSinkObject(BusAttachment* bus, const char* path, StreamObj
         { audioSinkIntf->GetMember("Pause"), static_cast<MessageReceiver::MethodHandler>(&AudioSinkObject::Pause) },
         { audioSinkIntf->GetMember("Flush"), static_cast<MessageReceiver::MethodHandler>(&AudioSinkObject::Flush) },
         { volumeIntf->GetMember("AdjustVolume"), static_cast<MessageReceiver::MethodHandler>(&AudioSinkObject::AdjustVolume) },
+        { volumeIntf->GetMember("AdjustVolumePercent"), static_cast<MessageReceiver::MethodHandler>(&AudioSinkObject::AdjustVolumePercent) },
     };
     QStatus status = AddMethodHandlers(methodEntries, sizeof(methodEntries) / sizeof(methodEntries[0]));
     if (status != ER_OK) {
@@ -98,6 +100,9 @@ AudioSinkObject::AudioSinkObject(BusAttachment* bus, const char* path, StreamObj
 
     mMuteChangedMember = volumeIntf->GetMember("MuteChanged");
     assert(mMuteChangedMember);
+
+    mEnabledChangedMember = volumeIntf->GetMember("EnabledChanged");
+    assert(mEnabledChangedMember);
 }
 
 AudioSinkObject::~AudioSinkObject() {
@@ -183,6 +188,8 @@ QStatus AudioSinkObject::Get(const char* ifcName, const char* propName, MsgArg& 
             } else {
                 status = ER_FAIL;
             }
+        } else if (0 == strcmp(propName, "Enabled")) {
+            val.Set("b", mAudioDevice->GetEnabled());
         } else {
             status = ER_BUS_NO_SUCH_PROPERTY;
         }
@@ -207,7 +214,9 @@ void AudioSinkObject::SetProp(const InterfaceDescription::Member* member, Messag
         /* No writable properties on AudioSink interface. */
         status = ER_BUS_PROPERTY_ACCESS_DENIED;
     } else if (0 == strcmp(ifcName, VOLUME_INTERFACE)) {
-        if (0 == strcmp(propName, "Volume")) {
+        if (!mAudioDevice->GetEnabled()) {
+            status = ER_FAIL;
+        } else if (0 == strcmp(propName, "Volume")) {
             int16_t newVolume = INT16_MIN;
             status = val->Get("n", &newVolume);
             if (status == ER_OK) {
@@ -231,6 +240,8 @@ void AudioSinkObject::SetProp(const InterfaceDescription::Member* member, Messag
                     status = ER_FAIL;
                 }
             }
+        } else if (0 == strcmp(propName, "Enabled")) {
+            status = ER_BUS_PROPERTY_ACCESS_DENIED;
         } else {
             status = ER_BUS_NO_SUCH_PROPERTY;
         }
@@ -380,6 +391,11 @@ void AudioSinkObject::Flush(const InterfaceDescription::Member* member, Message&
 }
 
 void AudioSinkObject::AdjustVolume(const InterfaceDescription::Member* member, Message& msg) {
+    if (!mAudioDevice->GetEnabled()) {
+        MethodReply(msg, ER_FAIL);
+        return;
+    }
+
     GET_ARGS(1);
 
     int16_t delta = args[0].v_int16;
@@ -394,6 +410,50 @@ void AudioSinkObject::AdjustVolume(const InterfaceDescription::Member* member, M
         MethodReply(msg, "org.alljoyn.Error.OutOfRange");
         return;
     }
+    if (!mAudioDevice->SetVolume(newVolume)) {
+        MethodReply(msg, ER_FAIL);
+        return;
+    }
+
+    MethodReply(msg, ER_OK);
+}
+
+void AudioSinkObject::AdjustVolumePercent(const InterfaceDescription::Member* member, Message& msg) {
+    if (!mAudioDevice->GetEnabled()) {
+        MethodReply(msg, ER_FAIL);
+        return;
+    }
+
+    GET_ARGS(1);
+
+    double volChange = args[0].v_double;
+
+    if (0 == volChange) {
+        MethodReply(msg, ER_OK);
+        return;
+    }
+
+    int16_t low, high, step, volume;
+    if (!mAudioDevice->GetVolumeRange(low, high, step) || !mAudioDevice->GetVolume(volume)) {
+        MethodReply(msg, ER_FAIL);
+        return;
+    }
+
+    int16_t newVolume = 0;
+    double halfStep = step / 2;
+    if (volChange <= -1.0) {
+        newVolume = low;
+    } else if (volChange >= 1.0) {
+        newVolume = high;
+    } else {
+        if (volChange > 0) {
+            newVolume = volume + floor(((high - volume) * volChange) + halfStep);
+        } else {
+            newVolume = volume + floor(((volume - low) * volChange) + halfStep);
+        }
+        newVolume -= newVolume % step;
+    }
+
     if (!mAudioDevice->SetVolume(newVolume)) {
         MethodReply(msg, ER_FAIL);
         return;
@@ -453,6 +513,19 @@ QStatus AudioSinkObject::EmitFifoPositionChangedSignal() {
     QStatus status = Signal(NULL, mStream->GetSessionId(), *mFifoPositionChangedMember, NULL, 0, 0, flags);
     if (status != ER_OK) {
         QCC_LogError(status, ("Failed to emit FifoPositionChanged signal"));
+    }
+
+    return status;
+}
+
+QStatus AudioSinkObject::EmitVolumeControlEnabledChangedSignal()
+{
+    MsgArg arg("b", mAudioDevice->GetEnabled());
+
+    uint8_t flags = 0;
+    QStatus status = Signal(NULL, mStream->GetSessionId(), *mEnabledChangedMember, &arg, 1, 0, flags);
+    if (status != ER_OK) {
+        QCC_LogError(status, ("Failed to emit Enabled signal"));
     }
 
     return status;

@@ -246,6 +246,13 @@ struct PlayState {
   <method name=\"AdjustVolume\"> \
     <arg name=\"delta\" type=\"n\" direction=\"in\"/> \
   </method> \
+  <method name=\"AdjustVolumePercent\"> \
+    <arg name=\"change\" type=\"d\" direction=\"in\"/> \
+  </method> \
+  <property name=\"Enabled\" type=\"b\" access=\"read\"/> \
+  <signal name=\"EnabledChanged\"> \
+    <arg name=\"enabled\" type=\"b\"/> \
+  </signal> \
 </interface> \
 <interface name=\"org.alljoyn.Stream.Clock\"> \
   <property name=\"Version\" type=\"q\" access=\"read\"/> \
