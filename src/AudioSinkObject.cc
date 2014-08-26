@@ -405,11 +405,10 @@ void AudioSinkObject::AdjustVolume(const InterfaceDescription::Member* member, M
         MethodReply(msg, ER_FAIL);
         return;
     }
+
     int16_t newVolume = volume + delta;
-    if (newVolume < low || high < newVolume) {
-        MethodReply(msg, "org.alljoyn.Error.OutOfRange");
-        return;
-    }
+    newVolume = (newVolume < low) ? low : ((newVolume > high) ? high : newVolume);
+
     if (!mAudioDevice->SetVolume(newVolume)) {
         MethodReply(msg, ER_FAIL);
         return;
