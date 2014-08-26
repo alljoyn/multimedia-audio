@@ -116,7 +116,7 @@ bool ALSADevice::Open(const char* format, uint32_t sampleRate, uint32_t numChann
         return false;
     }
 
-    if ((err = snd_pcm_hw_params_set_rate_near(mAudioDeviceHandle, hw_params, &sampleRate, 0)) < 0) {
+    if ((err = snd_pcm_hw_params_set_rate(mAudioDeviceHandle, hw_params, sampleRate, 0)) < 0) {
         QCC_LogError(ER_OS_ERROR, ("cannot set sample rate (%s)", snd_strerror(err)));
         AUDIO_CLEANUP();
         return false;
