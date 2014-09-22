@@ -1,4 +1,5 @@
 # UUID                                  	Group Name
 #
 31950f1fbc66fbbf03dc02d1c658f3b3cd9436df	Non-Interactive Users
+dda256aab381ee3d5ce59c132539c5b379b4cf9b	GitHub Replication for multimedia
 ldap:cn=gerrit_baseservices_committers,ou=groups,cn=allseen,dc=codeaurora,dc=org	ldap/gerrit_baseservices_committers
